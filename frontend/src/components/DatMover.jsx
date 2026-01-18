@@ -14,10 +14,12 @@ function DatMover({
 	],
 	offsetSeconds = 0,
 	label = "223 mM",
-	moveDuration = 3, // TOTAL time p[0] -> p[last]
-	endPause = 0.3,
+	moveDuration = 3, // TOTAL time p[0] -> p[last] (SIM SECONDS)
+	endPause = 0.3, // SIM SECONDS
+	useSimTime,
 }) {
 	const ref = useRef();
+	const { simTime } = useSimTime(); // ✅ NEW
 
 	const path = useMemo(() => {
 		const pts = p.map((pt) => new THREE.Vector3(...pt));
@@ -25,7 +27,6 @@ function DatMover({
 
 		if (n === 0) return { pts, segTimes: [], segEndTimes: [], totalLen: 0 };
 
-		// segment lengths
 		const segLens = new Array(n);
 		let totalLen = 0;
 		for (let i = 0; i < n; i++) {
@@ -34,24 +35,20 @@ function DatMover({
 			totalLen += len;
 		}
 
-		// segment times proportional to length; sum == moveDuration
 		const segTimes = new Array(n);
 		if (totalLen === 0) {
-			// all points identical: avoid NaNs
 			for (let i = 0; i < n; i++) segTimes[i] = moveDuration / n;
 		} else {
 			for (let i = 0; i < n; i++)
 				segTimes[i] = (segLens[i] / totalLen) * moveDuration;
 		}
 
-		// cumulative end times per segment: [tEnd0, tEnd1, ...] where last == moveDuration
 		const segEndTimes = new Array(n);
 		let acc = 0;
 		for (let i = 0; i < n; i++) {
 			acc += segTimes[i];
 			segEndTimes[i] = acc;
 		}
-		// force exact end to be moveDuration (avoids floating drift)
 		segEndTimes[n - 1] = moveDuration;
 
 		return { pts, segTimes, segEndTimes, totalLen };
@@ -59,7 +56,7 @@ function DatMover({
 
 	const cycle = moveDuration + endPause;
 
-	useFrame((state) => {
+	useFrame(() => {
 		const obj = ref.current;
 		if (!obj) return;
 
@@ -71,25 +68,22 @@ function DatMover({
 			return;
 		}
 
-		const t = state.clock.getElapsedTime() + offsetSeconds;
+		const t = simTime.current + offsetSeconds; // ✅ SIM TIME
 		const localT = ((t % cycle) + cycle) % cycle;
 
-		// pause at end (and also snap to end exactly)
 		if (localT >= moveDuration) {
 			obj.position.copy(pts[pts.length - 1]);
 			return;
 		}
 
-		// find active segment by time
 		let i = 0;
 		while (i < n - 1 && localT > segEndTimes[i]) i++;
 
 		const segEnd = segEndTimes[i];
 		const segStart = i === 0 ? 0 : segEndTimes[i - 1];
-		const segLenT = Math.max(1e-9, segTimes[i]); // prevent divide by zero
+		const segLenT = Math.max(1e-9, segTimes[i]);
 
 		const u = (localT - segStart) / segLenT;
-
 		obj.position.lerpVectors(pts[i], pts[i + 1], u);
 	});
 

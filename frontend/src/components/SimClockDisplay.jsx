@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 
 function SimClockDisplay({
-	position = [0, 0, 0], // ignored when overlay=true
+	position = [0, 0, 0],
 	overlay = true,
 	useSimTime,
 	SIM_SECONDS_PER_DAY,
@@ -12,7 +12,7 @@ function SimClockDisplay({
 	const [label, setLabel] = useState("Day 0 00:00:00");
 
 	useFrame(() => {
-		const t = simTime.current; // sim-seconds
+		const t = simTime.current;
 		const day = Math.floor(t / SIM_SECONDS_PER_DAY);
 		const secOfDay =
 			((t % SIM_SECONDS_PER_DAY) + SIM_SECONDS_PER_DAY) % SIM_SECONDS_PER_DAY;
@@ -21,9 +21,13 @@ function SimClockDisplay({
 		const mm = Math.floor((secOfDay % 3600) / 60);
 		const ss = Math.floor(secOfDay % 60);
 
+		const realSecondsPerSimDay = SIM_SECONDS_PER_DAY / speed;
+		const realMinutes = realSecondsPerSimDay / 60;
+
 		const pad = (n) => String(n).padStart(2, "0");
 		setLabel(
-			`Day ${day} ${pad(hh)}:${pad(mm)}:${pad(ss)}  (x${speed.toFixed(1)})`,
+			`Day ${day} ${pad(hh)}:${pad(mm)}:${pad(ss)}  (x${speed.toFixed(1)})\n` +
+				`24h sim = ${realMinutes.toFixed(1)} min real`,
 		);
 	});
 
@@ -35,33 +39,15 @@ function SimClockDisplay({
 		background: "rgba(0,0,0,0.55)",
 		color: "white",
 		userSelect: "none",
+		whiteSpace: "pre-line", // ✅ IMPORTANT for \n
 	};
 
-	// Overlay HUD (top-left)
-	if (overlay) {
-		return (
-			<Html fullscreen>
-				<div style={{ position: "absolute", top: 12, left: 12, ...style }}>
-					{label}
-				</div>
-			</Html>
-		);
-	}
-
-	// In-world label
 	return (
-		<group position={position}>
-			<Html
-				fullscreen
-				transform={false}
-				pointerEvents="none"
-				zIndexRange={[100, 0]}
-			>
-				<div style={{ position: "absolute", top: 12, left: 12, ...style }}>
-					{label}
-				</div>
-			</Html>
-		</group>
+		<Html fullscreen>
+			<div style={{ position: "absolute", top: 12, left: 12, ...style }}>
+				{label}
+			</div>
+		</Html>
 	);
 }
 

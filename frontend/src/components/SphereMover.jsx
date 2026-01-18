@@ -9,8 +9,10 @@ function SphereMover({
 	label = "223 mM",
 	moveDuration = 3,
 	pauseDuration = 0.3,
+	useSimTime,
 }) {
 	const ref = useRef();
+	const { simTime } = useSimTime(); // ✅ NEW
 
 	// Prebuild vectors once per p
 	const points = useMemo(() => p.map((pt) => new THREE.Vector3(...pt)), [p]);
@@ -20,7 +22,7 @@ function SphereMover({
 	const segDuration = moveDuration + pauseDuration;
 	const cycle = segCount * segDuration;
 
-	useFrame((state) => {
+	useFrame(() => {
 		if (!ref.current) return;
 		if (points.length === 0) return;
 		if (points.length === 1 || segCount === 0 || cycle === 0) {
@@ -28,7 +30,7 @@ function SphereMover({
 			return;
 		}
 
-		const globalT = state.clock.getElapsedTime() + offset;
+		const globalT = simTime.current + offset; // ✅ CHANGED (was state.clock...)
 		const localT = ((globalT % cycle) + cycle) % cycle;
 
 		const segIndex = Math.floor(localT / segDuration); // 0..segCount-1

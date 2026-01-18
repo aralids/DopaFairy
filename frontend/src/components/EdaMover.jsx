@@ -9,6 +9,7 @@ function EdaMover({
 	label = "223 mM",
 	moveDuration = 3,
 	pauseDuration = 0.3,
+	useSimTime,
 }) {
 	const p0 = p[0];
 	const p1 = p[1];
@@ -17,10 +18,11 @@ function EdaMover({
 	const move1 = moveDuration;
 	const pause2 = pauseDuration;
 
-	const beat = move1 + pause2; // ✅ same unit as your other movers (3.3)
-	const syncedOffset = offset * beat; // ✅ offset is now in "beats"
+	const beat = move1 + pause2; // same unit as other movers
+	const syncedOffset = offset * beat; // offset is in beats
 
 	const ref = useRef();
+	const { simTime } = useSimTime(); // ✅ NEW
 
 	const v0 = useRef(new THREE.Vector3(...p0));
 	const v1 = useRef(new THREE.Vector3(...p1));
@@ -30,10 +32,10 @@ function EdaMover({
 	const t3 = t2 + pause2;
 	const cycle = t3;
 
-	useFrame((state) => {
+	useFrame(() => {
 		if (!ref.current) return;
 
-		const globalT = state.clock.getElapsedTime() + syncedOffset; // ✅ change here
+		const globalT = simTime.current + syncedOffset; // ✅ CHANGED
 		const localT = ((globalT % cycle) + cycle) % cycle;
 
 		if (localT < t1) {

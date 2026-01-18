@@ -12,6 +12,10 @@ import SimClockDisplay from "./SimClockDisplay";
 const REAL_SECONDS_PER_SIM_DAY = 288; // <-- pick your value
 const SIM_SECONDS_PER_DAY = 24 * 60 * 60;
 
+const realSec2SimSec = (sec) => {
+	return sec * (SIM_SECONDS_PER_DAY / REAL_SECONDS_PER_SIM_DAY);
+};
+
 // shared clock context
 const SimClockContext = createContext({ simTime: { current: 0 }, speed: 1 });
 
@@ -170,9 +174,12 @@ const Viewer = ({
 						<SphereMover
 							key={`molecule-${index}`}
 							p={checkpointPositions}
-							offset={(index - 1) * 3.3}
-							moveDuration={MOVE_DURATION}
-							pauseDuration={PAUSE_DURATION}
+							offset={
+								(index - 1) * realSec2SimSec(MOVE_DURATION + PAUSE_DURATION)
+							}
+							moveDuration={realSec2SimSec(MOVE_DURATION)}
+							pauseDuration={realSec2SimSec(PAUSE_DURATION)}
+							useSimTime={useSimTime}
 						/>
 					) : (
 						<></>
@@ -185,9 +192,10 @@ const Viewer = ({
 							p0={[pos[0], pos[1] + 0.03, pos[2]]}
 							p1={[pos[0], pos[1], pos[2]]}
 							p2={[pos[0], pos[1] + 0.03, pos[2]]}
-							offset={1.3}
-							moveDuration={MOVE_DURATION / 2}
-							pauseDuration={PAUSE_DURATION}
+							offset={realSec2SimSec(1.3)}
+							moveDuration={realSec2SimSec(MOVE_DURATION / 2)}
+							pauseDuration={realSec2SimSec(PAUSE_DURATION)}
+							useSimTime={useSimTime}
 						/>
 					) : (
 						<></>
@@ -195,10 +203,15 @@ const Viewer = ({
 				)}
 				<EdaMover
 					p={[checkpointPositions[5], edaDestructionPosition]}
-					moveDuration={MOVE_DURATION}
-					pauseDuration={PAUSE_DURATION}
+					moveDuration={realSec2SimSec(MOVE_DURATION)}
+					pauseDuration={realSec2SimSec(PAUSE_DURATION)}
+					useSimTime={useSimTime}
 				/>
-				<DatMover moveDuration={MOVE_DURATION} endPause={PAUSE_DURATION} />
+				<DatMover
+					moveDuration={realSec2SimSec(MOVE_DURATION)}
+					endPause={realSec2SimSec(PAUSE_DURATION)}
+					useSimTime={useSimTime}
+				/>
 				<Model url={modelUrl} mode={mode} />
 				{simMode === "circadian" ? (
 					<SimClockDisplay

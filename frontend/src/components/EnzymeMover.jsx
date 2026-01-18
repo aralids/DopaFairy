@@ -9,12 +9,14 @@ function EnzymeMover({
 	moveDuration = 1.5,
 	pauseDuration = 0.3,
 	offset = 1.5,
+	useSimTime,
 }) {
 	const move1 = moveDuration;
 	const pause = pauseDuration;
 	const move2 = moveDuration;
 
 	const ref = useRef();
+	const { simTime } = useSimTime(); // ✅ NEW
 
 	const v0 = useRef(new THREE.Vector3(...p0));
 	const v1 = useRef(new THREE.Vector3(...p1));
@@ -22,15 +24,15 @@ function EnzymeMover({
 
 	const cycle = move1 + pause + move2;
 
-	useFrame((state) => {
+	useFrame(() => {
 		if (!ref.current) return;
 
-		const globalT = state.clock.getElapsedTime() + offset;
-		const localT = ((globalT % cycle) + cycle) % cycle; // safe modulo
+		const globalT = simTime.current + offset; // ✅ CHANGED
+		const localT = ((globalT % cycle) + cycle) % cycle;
 
 		if (localT < move1) {
 			// p0 -> p1
-			const u = localT / move1; // 0..1 in exactly 3s
+			const u = localT / move1;
 			ref.current.position.lerpVectors(v0.current, v1.current, u);
 			return;
 		}
@@ -42,14 +44,14 @@ function EnzymeMover({
 		}
 
 		// p1 -> p2
-		const u = (localT - move1 - pause) / move2; // 0..1 in exactly 3s
+		const u = (localT - move1 - pause) / move2;
 		ref.current.position.lerpVectors(v1.current, v2.current, u);
 	});
 
 	return (
 		<mesh ref={ref} name="TH" position={p0}>
 			<boxGeometry args={[0.03, 0.03, 0.03]} />
-			<meshStandardMaterial color="#7CFFCB" /> {/* minty dopamine vibe */}
+			<meshStandardMaterial color="#7CFFCB" />
 		</mesh>
 	);
 }
