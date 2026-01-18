@@ -1,119 +1,158 @@
-import { useFrame } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
-import { useMemo, useRef } from "react";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import { OrbitControls, useGLTF, Environment, Text } from "@react-three/drei";
+import { useRef, useEffect } from "react";
 import * as THREE from "three";
+import SphereMover from "./SphereMover";
+import EnzymeMover from "./EnzymeMover";
+import EdaMover from "./EdaMover";
+import DatMover from "./DatMover";
 
-function DatMover({
-	p = [
-		[0.000059, 0.529464, 0.001682],
-		[-0.040968, 0.549783, 0.135849],
-		[-0.068187, 0.639589, 0.240136],
-		[-0.101567, 0.897333, 0.258814],
-		[-0.041837, 1.03926, 0.10928],
-		[0.019215, 1.06271, -0.028969],
-	],
-	offsetSeconds = 0,
-	label = "223 mM",
-	moveDuration = 3, // TOTAL time p[0] -> p[last]
-	endPause = 0.3,
-}) {
-	const ref = useRef();
+const checkpointPositions = [
+	[0.550804, 1.37743, -1.07188],
+	[0.330904, 1.37743, -0.555198],
+	[0.148127, 1.29878, -0.225056],
+	[0.019215, 1.06271, -0.028969],
+	[0.000059, 0.771847, 0.001682],
+	[0.000059, 0.529464, 0.001682],
+];
 
-	const path = useMemo(() => {
-		const pts = p.map((pt) => new THREE.Vector3(...pt));
-		const n = Math.max(0, pts.length - 1);
+const edaDestructionPosition = [0.113718, 0.529464, -0.248264];
 
-		if (n === 0) return { pts, segTimes: [], segEndTimes: [], totalLen: 0 };
+function Model({ url, mode }) {
+	const { scene, nodes } = useGLTF(url);
+	useEffect(() => {
+		const presynapse = nodes.Presynapse;
+		if (!presynapse) return;
 
-		// segment lengths
-		const segLens = new Array(n);
-		let totalLen = 0;
-		for (let i = 0; i < n; i++) {
-			const len = pts[i].distanceTo(pts[i + 1]);
-			segLens[i] = len;
-			totalLen += len;
-		}
+		// 1️⃣ Clone the material so it's NOT shared
+		const transparentMat = presynapse.material.clone();
 
-		// segment times proportional to length; sum == moveDuration
-		const segTimes = new Array(n);
-		if (totalLen === 0) {
-			// all points identical: avoid NaNs
-			for (let i = 0; i < n; i++) segTimes[i] = moveDuration / n;
-		} else {
-			for (let i = 0; i < n; i++)
-				segTimes[i] = (segLens[i] / totalLen) * moveDuration;
-		}
+		// 2️⃣ Make ONLY this material transparent
+		transparentMat.transparent = true;
+		transparentMat.opacity = 0.3;
 
-		// cumulative end times per segment: [tEnd0, tEnd1, ...] where last == moveDuration
-		const segEndTimes = new Array(n);
-		let acc = 0;
-		for (let i = 0; i < n; i++) {
-			acc += segTimes[i];
-			segEndTimes[i] = acc;
-		}
-		// force exact end to be moveDuration (avoids floating drift)
-		segEndTimes[n - 1] = moveDuration;
+		// 3️⃣ Important transparency fix
+		transparentMat.depthWrite = false;
 
-		return { pts, segTimes, segEndTimes, totalLen };
-	}, [p, moveDuration]);
+		// (optional but often helps)
+		transparentMat.side = THREE.DoubleSide;
 
-	const cycle = moveDuration + endPause;
+		// 4️⃣ Assign it back ONLY to the presynapse
+		presynapse.material = transparentMat;
+	}, [nodes]);
 
-	useFrame((state) => {
-		const obj = ref.current;
-		if (!obj) return;
-
-		const { pts, segTimes, segEndTimes } = path;
-		const n = pts.length - 1;
-
-		if (pts.length <= 1 || n <= 0) {
-			obj.position.copy(pts[0] ?? new THREE.Vector3());
-			return;
-		}
-
-		const t = state.clock.getElapsedTime() + offsetSeconds;
-		const localT = ((t % cycle) + cycle) % cycle;
-
-		// pause at end (and also snap to end exactly)
-		if (localT >= moveDuration) {
-			obj.position.copy(pts[pts.length - 1]);
-			return;
-		}
-
-		// find active segment by time
-		let i = 0;
-		while (i < n - 1 && localT > segEndTimes[i]) i++;
-
-		const segEnd = segEndTimes[i];
-		const segStart = i === 0 ? 0 : segEndTimes[i - 1];
-		const segLenT = Math.max(1e-9, segTimes[i]); // prevent divide by zero
-
-		const u = (localT - segStart) / segLenT;
-
-		obj.position.lerpVectors(pts[i], pts[i + 1], u);
-	});
-
-	const start = path.pts[0] ?? new THREE.Vector3();
-
-	return (
-		<group ref={ref} name="DatMover" position={start}>
-			<mesh>
-				<sphereGeometry args={[0.015, 32, 32]} />
-				<meshStandardMaterial color="hotpink" />
-			</mesh>
-
-			<Text
-				position={[0, -0.04, 0]}
-				fontSize={0.02}
-				anchorX="center"
-				anchorY="top"
-				billboard
-				scale={[-1, 1, 1]}
-			>
-				{label}
-			</Text>
-		</group>
-	);
+	return <primitive object={scene} />;
 }
 
-export default DatMover;
+function CameraController({ position, target, enabled, resetId }) {
+	const { camera } = useThree();
+	const desiredPos = useRef(new THREE.Vector3());
+	const desiredTarget = useRef(new THREE.Vector3());
+
+	useEffect(() => {
+		if (!enabled) return;
+
+		desiredPos.current.copy(camera.position);
+		desiredTarget.current.set(...target);
+	}, [enabled, resetId]);
+
+	useFrame((_, delta) => {
+		if (!enabled) return; // 🔑 THIS IS THE KEY
+
+		const lerpFactor = 1 - Math.exp(-delta * 2);
+
+		desiredPos.current.set(...position);
+		desiredTarget.current.set(...target);
+
+		camera.position.lerp(desiredPos.current, lerpFactor);
+		camera.lookAt(desiredTarget.current);
+	});
+}
+
+const Viewer = ({
+	modelUrl,
+	mode,
+	cameraPos,
+	cameraTarget,
+	autoCamera,
+	setAutoCamera,
+	cameraResetId,
+}) => {
+	const controlsRef = useRef();
+	return (
+		<Canvas camera={{ position: [-3, 3, 3], fov: 50 }}>
+			<CameraController
+				position={cameraPos}
+				target={cameraTarget}
+				enabled={autoCamera}
+				resetId={cameraResetId}
+			/>
+			<ambientLight intensity={1.2} />
+			<directionalLight position={[5, 5, 5]} intensity={2} />
+			<Environment preset="sunset" />
+			<OrbitControls
+				ref={controlsRef}
+				enableDamping
+				enablePan
+				screenSpacePanning
+				onStart={() => setAutoCamera(false)}
+				onEnd={() => {
+					const controls = controlsRef.current;
+					if (!controls) return;
+
+					const cam = controls.object;
+					const t = controls.target;
+
+					// console.log("cameraPos:", [cam.position.x, cam.position.y, cam.position.z]);
+					// console.log("cameraTarget:", [t.x, t.y, t.z]);
+				}}
+			/>
+			<group name={`tyr-storage`} position={checkpointPositions[1]}>
+				<mesh name={`tyr-storage`}>
+					<sphereGeometry args={[0.015, 32, 32]} />
+					<meshStandardMaterial color="hotpink" />
+				</mesh>
+
+				<Text
+					position={[0, -0.04, 0]}
+					fontSize={0.02}
+					anchorX="center"
+					anchorY="top"
+					billboard
+					scale={[-1, 1, 1]}
+				>
+					{"tyr"}
+				</Text>
+			</group>
+			{...checkpointPositions.map((pos, index) =>
+				index > 0 ? (
+					<SphereMover
+						key={`molecule-${index}`}
+						p={checkpointPositions}
+						offset={(index - 1) * 3.3}
+					/>
+				) : (
+					<></>
+				),
+			)}
+			{...checkpointPositions.map((pos, index) =>
+				index > 1 && index !== 5 ? (
+					<EnzymeMover
+						key={`enzyme-${index}`}
+						p0={[pos[0], pos[1] + 0.03, pos[2]]}
+						p1={[pos[0], pos[1], pos[2]]}
+						p2={[pos[0], pos[1] + 0.03, pos[2]]}
+						offset={1.3}
+					/>
+				) : (
+					<></>
+				),
+			)}
+			<EdaMover p={[checkpointPositions[5], edaDestructionPosition]} />
+			<DatMover />
+			<Model url={modelUrl} mode={mode} />
+		</Canvas>
+	);
+};
+
+export default Viewer;
