@@ -3,22 +3,30 @@ import { Text } from "@react-three/drei";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-function SphereMover({
-	p,
+function DatMover({
+	p = [
+		[0.000059, 0.529464, 0.001682],
+		[-0.040968, 0.549783, 0.135849],
+		[-0.068187, 0.639589, 0.240136],
+		[-0.101567, 0.897333, 0.258814],
+		[-0.041837, 1.03926, 0.10928],
+		[0.019215, 1.06271, -0.028969],
+	],
 	offset = 0,
 	label = "223 mM",
-	moveDuration = 3,
-	pauseDuration = 0.3,
+	moveDuration = 3 / (p.length - 1),
+	pauseDuration = 0,
+	endPauseDuration = 0.3, // ✅ added
 }) {
 	const ref = useRef();
 
-	// Prebuild vectors once per p
 	const points = useMemo(() => p.map((pt) => new THREE.Vector3(...pt)), [p]);
 
-	// For N points, we have (N-1) move segments + (N-1) pause segments (pause at each arrival)
 	const segCount = Math.max(0, points.length - 1);
 	const segDuration = moveDuration + pauseDuration;
-	const cycle = segCount * segDuration;
+
+	const movePhase = segCount * segDuration; // ✅ time for all segments
+	const cycle = movePhase + endPauseDuration; // ✅ include end pause
 
 	useFrame((state) => {
 		if (!ref.current) return;
@@ -31,17 +39,22 @@ function SphereMover({
 		const globalT = state.clock.getElapsedTime() + offset;
 		const localT = ((globalT % cycle) + cycle) % cycle;
 
-		const segIndex = Math.floor(localT / segDuration); // 0..segCount-1
-		const segT = localT - segIndex * segDuration; // time within this segment
+		// ✅ final pause at last point
+		if (localT >= movePhase) {
+			ref.current.position.copy(points[points.length - 1]);
+			return;
+		}
+
+		const segIndex = Math.floor(localT / segDuration);
+		const segT = localT - segIndex * segDuration;
 
 		const a = points[segIndex];
 		const b = points[segIndex + 1];
 
 		if (segT < moveDuration) {
-			const u = segT / moveDuration; // 0..1
+			const u = segT / moveDuration;
 			ref.current.position.lerpVectors(a, b, u);
 		} else {
-			// pause: hold at the arrival point
 			ref.current.position.copy(b);
 		}
 	});
@@ -69,4 +82,4 @@ function SphereMover({
 	);
 }
 
-export default SphereMover;
+export default DatMover;
