@@ -2,17 +2,19 @@ import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import { useRef } from "react";
 import * as THREE from "three";
+import {
+	MOVE_DURATION_IN_SIM_SEC,
+	PAUSE_DURATION_IN_SIM_SEC,
+	EDA_PATH_POINTS,
+} from "../config/config";
 
-function EdaMover({
-	p,
-	offset = 0,
-	label = "223 mM",
-	moveDuration = 3,
-	pauseDuration = 0.3,
-	useSimTime,
-}) {
+function EdaMover({ label = "223 mM", useSimTime }) {
+	const p = EDA_PATH_POINTS;
+	const offset = 0;
 	const p0 = p[0];
 	const p1 = p[1];
+	const moveDuration = MOVE_DURATION_IN_SIM_SEC;
+	const pauseDuration = PAUSE_DURATION_IN_SIM_SEC;
 
 	const pause1 = 0;
 	const move1 = moveDuration;

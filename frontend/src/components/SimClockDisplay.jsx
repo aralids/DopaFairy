@@ -1,13 +1,9 @@
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
+import { SIM_SECONDS_PER_DAY } from "../config/config";
 
-function SimClockDisplay({
-	position = [0, 0, 0],
-	overlay = true,
-	useSimTime,
-	SIM_SECONDS_PER_DAY,
-}) {
+function SimClockDisplay({ useSimTime }) {
 	const { simTime, speed } = useSimTime();
 	const [label, setLabel] = useState("Day 0 00:00:00");
 

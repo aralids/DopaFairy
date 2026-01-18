@@ -7,14 +7,14 @@ import EnzymeMover from "./EnzymeMover";
 import EdaMover from "./EdaMover";
 import DatMover from "./DatMover";
 import SimClockDisplay from "./SimClockDisplay";
-// (you already import useRef/useEffect, so just add createContext/useContext/useMemo)
-
-const REAL_SECONDS_PER_SIM_DAY = 288; // <-- pick your value
-const SIM_SECONDS_PER_DAY = 24 * 60 * 60;
-
-const realSec2SimSec = (sec) => {
-	return sec * (SIM_SECONDS_PER_DAY / REAL_SECONDS_PER_SIM_DAY);
-};
+import {
+	REAL_SECONDS_PER_SIM_DAY,
+	SIM_SECONDS_PER_DAY,
+	CHECKPOINT_POSITIONS,
+	MOVE_DURATION_IN_SIM_SEC,
+	PAUSE_DURATION_IN_SIM_SEC,
+} from "../config/config";
+import { realSec2SimSec } from "../utils/simTime";
 
 // shared clock context
 const SimClockContext = createContext({ simTime: { current: 0 }, speed: 1 });
@@ -46,21 +46,7 @@ function SimClock({ children }) {
 	);
 }
 
-const checkpointPositions = [
-	[0.550804, 1.37743, -1.07188],
-	[0.330904, 1.37743, -0.555198],
-	[0.148127, 1.29878, -0.225056],
-	[0.019215, 1.06271, -0.028969],
-	[0.000059, 0.771847, 0.001682],
-	[0.000059, 0.529464, 0.001682],
-];
-
-const MOVE_DURATION = 3;
-const PAUSE_DURATION = 0.3;
-
-const edaDestructionPosition = [0.113718, 0.529464, -0.248264];
-
-function Model({ url, mode }) {
+function Model({ url }) {
 	const { scene, nodes } = useGLTF(url);
 	useEffect(() => {
 		const presynapse = nodes.Presynapse;
@@ -99,7 +85,7 @@ function CameraController({ position, target, enabled, resetId }) {
 	}, [enabled, resetId]);
 
 	useFrame((_, delta) => {
-		if (!enabled) return; // 🔑 THIS IS THE KEY
+		if (!enabled) return;
 
 		const lerpFactor = 1 - Math.exp(-delta * 2);
 
@@ -113,7 +99,6 @@ function CameraController({ position, target, enabled, resetId }) {
 
 const Viewer = ({
 	modelUrl,
-	mode,
 	cameraPos,
 	cameraTarget,
 	autoCamera,
@@ -152,7 +137,7 @@ const Viewer = ({
 						// console.log("cameraTarget:", [t.x, t.y, t.z]);
 					}}
 				/>
-				<group name={`tyr-storage`} position={checkpointPositions[1]}>
+				<group name={`tyr-storage`} position={CHECKPOINT_POSITIONS[1]}>
 					<mesh name={`tyr-storage`}>
 						<sphereGeometry args={[0.015, 32, 32]} />
 						<meshStandardMaterial color="hotpink" />
@@ -169,55 +154,38 @@ const Viewer = ({
 						{"tyr"}
 					</Text>
 				</group>
-				{...checkpointPositions.map((pos, index) =>
+				{...CHECKPOINT_POSITIONS.map((pos, index) =>
 					index > 0 ? (
 						<SphereMover
 							key={`molecule-${index}`}
-							p={checkpointPositions}
 							offset={
-								(index - 1) * realSec2SimSec(MOVE_DURATION + PAUSE_DURATION)
+								(index - 1) *
+								(MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC)
 							}
-							moveDuration={realSec2SimSec(MOVE_DURATION)}
-							pauseDuration={realSec2SimSec(PAUSE_DURATION)}
 							useSimTime={useSimTime}
 						/>
 					) : (
 						<></>
 					),
 				)}
-				{...checkpointPositions.map((pos, index) =>
+				{...CHECKPOINT_POSITIONS.map((pos, index) =>
 					index > 1 && index !== 5 ? (
 						<EnzymeMover
 							key={`enzyme-${index}`}
 							p0={[pos[0], pos[1] + 0.03, pos[2]]}
 							p1={[pos[0], pos[1], pos[2]]}
 							p2={[pos[0], pos[1] + 0.03, pos[2]]}
-							offset={realSec2SimSec(1.3)}
-							moveDuration={realSec2SimSec(MOVE_DURATION / 2)}
-							pauseDuration={realSec2SimSec(PAUSE_DURATION)}
 							useSimTime={useSimTime}
 						/>
 					) : (
 						<></>
 					),
 				)}
-				<EdaMover
-					p={[checkpointPositions[5], edaDestructionPosition]}
-					moveDuration={realSec2SimSec(MOVE_DURATION)}
-					pauseDuration={realSec2SimSec(PAUSE_DURATION)}
-					useSimTime={useSimTime}
-				/>
-				<DatMover
-					moveDuration={realSec2SimSec(MOVE_DURATION)}
-					endPause={realSec2SimSec(PAUSE_DURATION)}
-					useSimTime={useSimTime}
-				/>
-				<Model url={modelUrl} mode={mode} />
+				<EdaMover useSimTime={useSimTime} />
+				<DatMover useSimTime={useSimTime} />
+				<Model url={modelUrl} />
 				{simMode === "circadian" ? (
-					<SimClockDisplay
-						useSimTime={useSimTime}
-						SIM_SECONDS_PER_DAY={SIM_SECONDS_PER_DAY}
-					/>
+					<SimClockDisplay useSimTime={useSimTime} />
 				) : (
 					<></>
 				)}

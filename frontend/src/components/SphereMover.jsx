@@ -2,15 +2,17 @@ import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
+import {
+	MOVE_DURATION_IN_SIM_SEC,
+	PAUSE_DURATION_IN_SIM_SEC,
+	CHECKPOINT_POSITIONS,
+} from "../config/config";
 
-function SphereMover({
-	p,
-	offset = 0,
-	label = "223 mM",
-	moveDuration = 3,
-	pauseDuration = 0.3,
-	useSimTime,
-}) {
+function SphereMover({ offset, label = "223 mM", useSimTime }) {
+	const p = CHECKPOINT_POSITIONS;
+	const moveDuration = MOVE_DURATION_IN_SIM_SEC;
+	const pauseDuration = PAUSE_DURATION_IN_SIM_SEC;
+
 	const ref = useRef();
 	const { simTime } = useSimTime(); // ✅ NEW
 

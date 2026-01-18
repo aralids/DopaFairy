@@ -1,22 +1,20 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
+import {
+	MOVE_DURATION_IN_SIM_SEC,
+	PAUSE_DURATION_IN_SIM_SEC,
+	ENZYME_OFFSET_IN_SIM_SEC,
+} from "../config/config";
 
-function EnzymeMover({
-	p0,
-	p1,
-	p2,
-	moveDuration = 1.5,
-	pauseDuration = 0.3,
-	offset = 1.5,
-	useSimTime,
-}) {
-	const move1 = moveDuration;
-	const pause = pauseDuration;
-	const move2 = moveDuration;
+function EnzymeMover({ p0, p1, p2, useSimTime }) {
+	const offset = ENZYME_OFFSET_IN_SIM_SEC;
+	const move1 = MOVE_DURATION_IN_SIM_SEC / 2;
+	const pause = PAUSE_DURATION_IN_SIM_SEC;
+	const move2 = MOVE_DURATION_IN_SIM_SEC / 2;
 
 	const ref = useRef();
-	const { simTime } = useSimTime(); // ✅ NEW
+	const { simTime } = useSimTime(); // ✅ CHANGED
 
 	const v0 = useRef(new THREE.Vector3(...p0));
 	const v1 = useRef(new THREE.Vector3(...p1));

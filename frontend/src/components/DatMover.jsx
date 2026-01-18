@@ -2,22 +2,18 @@ import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
+import {
+	MOVE_DURATION_IN_SIM_SEC,
+	PAUSE_DURATION_IN_SIM_SEC,
+	DAT_CURVE_POINTS,
+} from "../config/config";
 
-function DatMover({
-	p = [
-		[0.000059, 0.529464, 0.001682],
-		[-0.040968, 0.549783, 0.135849],
-		[-0.068187, 0.639589, 0.240136],
-		[-0.101567, 0.897333, 0.258814],
-		[-0.041837, 1.03926, 0.10928],
-		[0.019215, 1.06271, -0.028969],
-	],
-	offsetSeconds = 0,
-	label = "223 mM",
-	moveDuration = 3, // TOTAL time p[0] -> p[last] (SIM SECONDS)
-	endPause = 0.3, // SIM SECONDS
-	useSimTime,
-}) {
+function DatMover({ label = "223 mM", useSimTime }) {
+	const p = DAT_CURVE_POINTS;
+	const offset = 0;
+	const moveDuration = MOVE_DURATION_IN_SIM_SEC;
+	const endPause = PAUSE_DURATION_IN_SIM_SEC;
+
 	const ref = useRef();
 	const { simTime } = useSimTime(); // ✅ NEW
 
@@ -68,7 +64,7 @@ function DatMover({
 			return;
 		}
 
-		const t = simTime.current + offsetSeconds; // ✅ SIM TIME
+		const t = simTime.current + offset; // ✅ SIM TIME
 		const localT = ((t % cycle) + cycle) % cycle;
 
 		if (localT >= moveDuration) {
