@@ -1,13 +1,18 @@
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { useMemo, useRef, useState } from "react"; // ✅ CHANGED
+import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
 	DAT_CURVE_POINTS,
+	K_CDA,
+	MIN_REUPTAKEN_AMOUNT,
+	MAX_REUPTAKEN_AMOUNT,
+	MIN_SPHERE_SIZE,
+	MAX_SPHERE_SIZE,
 } from "../config/config";
-import { reuptaken as removed } from "../config/steadyState"; // ✅ CHANGED (alias)
+import { cda, reuptaken } from "../config/steadyState";
 
 function DatMover({ label: _label = "223 mM", useSimTime }) {
 	const p = DAT_CURVE_POINTS;
@@ -16,9 +21,9 @@ function DatMover({ label: _label = "223 mM", useSimTime }) {
 	const endPause = PAUSE_DURATION_IN_SIM_SEC;
 
 	const ref = useRef();
+	const meshRef = useRef(); // ✅ NEW
 	const { simTime } = useSimTime();
 
-	// ✅ NEW: label state driven by array
 	const [label, setLabel] = useState("");
 	const lastLabelKey = useRef(null);
 
@@ -57,6 +62,17 @@ function DatMover({ label: _label = "223 mM", useSimTime }) {
 
 	const cycle = moveDuration + endPause;
 
+	// ✅ NEW: helpers for size mapping
+	const clamp01 = (x) => Math.max(0, Math.min(1, x));
+	const amountToRadius = (amount) => {
+		const a = Number(amount);
+		if (!Number.isFinite(a)) return MIN_SPHERE_SIZE;
+		const denom = MAX_REUPTAKEN_AMOUNT - MIN_REUPTAKEN_AMOUNT;
+		if (!Number.isFinite(denom) || denom === 0) return MIN_SPHERE_SIZE;
+		const t = clamp01((a - MIN_REUPTAKEN_AMOUNT) / denom);
+		return MIN_SPHERE_SIZE + t * (MAX_SPHERE_SIZE - MIN_SPHERE_SIZE);
+	};
+
 	useFrame(() => {
 		const obj = ref.current;
 		if (!obj) return;
@@ -72,19 +88,47 @@ function DatMover({ label: _label = "223 mM", useSimTime }) {
 		const t = simTime.current + offset;
 		const localT = ((t % cycle) + cycle) % cycle;
 
-		// ✅ NEW: advance label once per cycle, starting at removed[5]
+		// index into arrays
 		const k = Math.floor(t / cycle);
 		const idx = 5 + k;
 
-		const nextLabel =
-			idx >= 0 && idx < (removed?.length ?? 0) ? removed[idx] : "";
+		// amounts
+		const A0 =
+			idx >= 0 && idx < (reuptaken?.length ?? 0) ? Number(reuptaken[idx]) : NaN;
 
+		const CDA = idx >= 0 && idx < (cda?.length ?? 0) ? Number(cda[idx]) : NaN;
+
+		const A1 =
+			Number.isFinite(A0) && Number.isFinite(CDA) ? A0 - K_CDA * CDA : NaN;
+
+		// interpolate amount during travel, hold during pause
+		let A = A0;
+		if (localT < moveDuration) {
+			const uAmt = moveDuration > 0 ? localT / moveDuration : 1;
+			if (Number.isFinite(A0) && Number.isFinite(A1)) {
+				A = A0 + (A1 - A0) * uAmt;
+			}
+		} else {
+			A = A1;
+		}
+
+		// ✅ label changes accordingly (continuous during travel)
+		const nextLabel = Number.isFinite(A) ? A.toFixed(3) : "";
 		const key = `${k}:${idx}:${nextLabel}`;
 		if (lastLabelKey.current !== key) {
 			lastLabelKey.current = key;
 			setLabel(nextLabel);
 		}
 
+		// ✅ size follows the same A
+		const radius = amountToRadius(A);
+		if (meshRef.current) {
+			const baseGeomRadius = 0.015; // sphereGeometry radius
+			const s = baseGeomRadius > 0 ? radius / baseGeomRadius : 1;
+			meshRef.current.scale.setScalar(s);
+		}
+
+		// position along path (unchanged)
 		if (localT >= moveDuration) {
 			obj.position.copy(pts[pts.length - 1]);
 			return;
@@ -104,7 +148,7 @@ function DatMover({ label: _label = "223 mM", useSimTime }) {
 
 	return (
 		<group ref={ref} name="DatMover" position={start}>
-			<mesh>
+			<mesh ref={meshRef}>
 				<sphereGeometry args={[0.015, 32, 32]} />
 				<meshStandardMaterial color="hotpink" />
 			</mesh>

@@ -6,13 +6,17 @@ import {
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
 	EDA_PATH_POINTS,
+	K_EDA,
+	MIN_DESTROYED_AMOUNT,
+	MAX_DESTROYED_AMOUNT,
+	MIN_SPHERE_SIZE,
+	MAX_SPHERE_SIZE,
 } from "../config/config";
-import { destroyed } from "../config/steadyState";
+import { destroyed, vda } from "../config/steadyState";
 
 function EdaMover({ label: _label = "223 mM", useSimTime }) {
 	const p = EDA_PATH_POINTS;
 
-	// same offset scheme as others
 	const offset = 5 * (MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC);
 
 	const p0 = p[0];
@@ -22,9 +26,9 @@ function EdaMover({ label: _label = "223 mM", useSimTime }) {
 	const pauseDuration = PAUSE_DURATION_IN_SIM_SEC;
 
 	const ref = useRef();
+	const meshRef = useRef(); // ✅ NEW
 	const { simTime } = useSimTime();
 
-	// ✅ label state driven by array (same as DatMover)
 	const [label, setLabel] = useState("");
 	const lastLabelKey = useRef(null);
 
@@ -33,23 +37,61 @@ function EdaMover({ label: _label = "223 mM", useSimTime }) {
 
 	const cycle = moveDuration + pauseDuration;
 
+	// ✅ NEW: helpers for size mapping
+	const clamp01 = (x) => Math.max(0, Math.min(1, x));
+	const amountToRadius = (amount) => {
+		const a = Number(amount);
+		if (!Number.isFinite(a)) return MIN_SPHERE_SIZE;
+		const denom = MAX_DESTROYED_AMOUNT - MIN_DESTROYED_AMOUNT;
+		if (!Number.isFinite(denom) || denom === 0) return MIN_SPHERE_SIZE;
+		const t = clamp01((a - MIN_DESTROYED_AMOUNT) / denom);
+		return MIN_SPHERE_SIZE + t * (MAX_SPHERE_SIZE - MIN_SPHERE_SIZE);
+	};
+
 	useFrame(() => {
 		if (!ref.current) return;
 
 		const globalT = simTime.current + offset;
 		const localT = ((globalT % cycle) + cycle) % cycle;
 
-		// ✅ advance label once per cycle, starting at destroyed[5]
+		// ✅ advance once per cycle, starting at destroyed[5]
 		const k = Math.floor(globalT / cycle);
 		const idx = 5 + k;
 
-		const nextLabel =
-			idx >= 0 && idx < (destroyed?.length ?? 0) ? destroyed[idx] : "";
+		// amounts
+		const A0 =
+			idx >= 0 && idx < (destroyed?.length ?? 0) ? Number(destroyed[idx]) : NaN;
 
+		const VDA = idx >= 0 && idx < (vda?.length ?? 0) ? Number(vda[idx]) : NaN;
+
+		const A1 =
+			Number.isFinite(A0) && Number.isFinite(VDA) ? A0 - K_EDA * VDA : NaN;
+
+		// interpolate during travel, hold during pause
+		let A = A0;
+		if (localT < moveDuration) {
+			const uAmt = moveDuration > 0 ? localT / moveDuration : 1;
+			if (Number.isFinite(A0) && Number.isFinite(A1)) {
+				A = A0 + (A1 - A0) * uAmt;
+			}
+		} else {
+			A = A1;
+		}
+
+		// ✅ label changes accordingly (x.xxx)
+		const nextLabel = Number.isFinite(A) ? A.toFixed(3) : "";
 		const key = `${k}:${idx}:${nextLabel}`;
 		if (lastLabelKey.current !== key) {
 			lastLabelKey.current = key;
 			setLabel(nextLabel);
+		}
+
+		// ✅ size follows A
+		const radius = amountToRadius(A);
+		if (meshRef.current) {
+			const baseGeomRadius = 0.015;
+			const s = baseGeomRadius > 0 ? radius / baseGeomRadius : 1;
+			meshRef.current.scale.setScalar(s);
 		}
 
 		// move, then pause at end
@@ -63,7 +105,7 @@ function EdaMover({ label: _label = "223 mM", useSimTime }) {
 
 	return (
 		<group ref={ref} name={`Sphere${offset}`} position={p0}>
-			<mesh name={`Sphere${offset}`}>
+			<mesh ref={meshRef} name={`Sphere${offset}`}>
 				<sphereGeometry args={[0.015, 32, 32]} />
 				<meshStandardMaterial color="hotpink" />
 			</mesh>

@@ -29,7 +29,23 @@ export const PAUSE_DURATION_IN_REAL_SEC = 0.3;
 export const ENZYME_OFFSET_IN_REAL_SEC = 1.5;
 
 export const MIN_SPHERE_SIZE = 0.01;
-export const MAX_SPHERE_SIZE = 1;
+export const MAX_SPHERE_SIZE = 0.05;
+export const MIN_BTYR_AMOUNT = 0;
+export const MAX_BTYR_AMOUNT = 6;
+export const MIN_TYR_AMOUNT = 0;
+export const MAX_TYR_AMOUNT = 6;
+export const MIN_LDOPA_AMOUNT = 0;
+export const MAX_LDOPA_AMOUNT = 6;
+export const MIN_CDA_AMOUNT = 0;
+export const MAX_CDA_AMOUNT = 6;
+export const MIN_VDA_AMOUNT = 0;
+export const MAX_VDA_AMOUNT = 6;
+export const MIN_REUPTAKEN_AMOUNT = 0;
+export const MAX_REUPTAKEN_AMOUNT = 6;
+export const MIN_DESTROYED_AMOUNT = 0;
+export const MAX_DESTROYED_AMOUNT = 6;
+export const K_CDA = 1;
+export const K_EDA = 1;
 
 export const MOVE_DURATION_IN_SIM_SEC = realSec2SimSec(
 	MOVE_DURATION_IN_REAL_SEC,
