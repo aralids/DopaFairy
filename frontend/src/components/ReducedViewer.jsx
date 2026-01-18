@@ -14,7 +14,6 @@ import {
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
 } from "../config/config";
-import { realSec2SimSec } from "../utils/simTime";
 
 // shared clock context
 const SimClockContext = createContext({ simTime: { current: 0 }, speed: 1 });
@@ -110,7 +109,7 @@ const Viewer = ({
 
 	return (
 		<Canvas camera={{ position: [-3, 3, 3], fov: 50 }}>
-			<SimClock>
+			<SimClock key={simMode}>
 				<CameraController
 					position={cameraPos}
 					target={cameraTarget}
@@ -158,6 +157,7 @@ const Viewer = ({
 					index > 0 ? (
 						<SphereMover
 							key={`molecule-${index}`}
+							index={index}
 							offset={
 								(index - 1) *
 								(MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC)

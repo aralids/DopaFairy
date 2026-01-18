@@ -1,6 +1,6 @@
 import { realSec2SimSec } from "../utils/simTime";
 
-export const REAL_SECONDS_PER_SIM_DAY = 288;
+export const REAL_SECONDS_PER_SIM_DAY = 330;
 export const SIM_SECONDS_PER_DAY = 24 * 60 * 60;
 
 export const CHECKPOINT_POSITIONS = [
@@ -27,6 +27,9 @@ export const EDA_PATH_POINTS = [
 export const MOVE_DURATION_IN_REAL_SEC = 3;
 export const PAUSE_DURATION_IN_REAL_SEC = 0.3;
 export const ENZYME_OFFSET_IN_REAL_SEC = 1.5;
+
+export const MIN_SPHERE_SIZE = 0.01;
+export const MAX_SPHERE_SIZE = 1;
 
 export const MOVE_DURATION_IN_SIM_SEC = realSec2SimSec(
 	MOVE_DURATION_IN_REAL_SEC,

@@ -1,20 +1,25 @@
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react"; // ✅ CHANGED
 import * as THREE from "three";
 import {
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
 	CHECKPOINT_POSITIONS,
 } from "../config/config";
+import { btyr, tyr, ldopa, cda, vda } from "../config/steadyState";
 
-function SphereMover({ offset, label = "223 mM", useSimTime }) {
+function SphereMover({ offset, index, useSimTime }) {
 	const p = CHECKPOINT_POSITIONS;
 	const moveDuration = MOVE_DURATION_IN_SIM_SEC;
 	const pauseDuration = PAUSE_DURATION_IN_SIM_SEC;
 
 	const ref = useRef();
-	const { simTime } = useSimTime(); // ✅ NEW
+	const { simTime } = useSimTime();
+
+	// ✅ NEW: label state (updates only when needed)
+	const [label, setLabel] = useState("");
+	const lastLabelKey = useRef(null);
 
 	// Prebuild vectors once per p
 	const points = useMemo(() => p.map((pt) => new THREE.Vector3(...pt)), [p]);
@@ -32,21 +37,48 @@ function SphereMover({ offset, label = "223 mM", useSimTime }) {
 			return;
 		}
 
-		const globalT = simTime.current + offset; // ✅ CHANGED (was state.clock...)
+		const globalT = simTime.current + offset;
+
+		// ✅ NEW: round k (0,1,2,...) based on how many full cycles have elapsed
+		const k = Math.floor(globalT / cycle);
+
 		const localT = ((globalT % cycle) + cycle) % cycle;
 
 		const segIndex = Math.floor(localT / segDuration); // 0..segCount-1
-		const segT = localT - segIndex * segDuration; // time within this segment
+		const segT = localT - segIndex * segDuration;
 
 		const a = points[segIndex];
 		const b = points[segIndex + 1];
 
 		if (segT < moveDuration) {
-			const u = segT / moveDuration; // 0..1
+			const u = segT / moveDuration;
 			ref.current.position.lerpVectors(a, b, u);
 		} else {
-			// pause: hold at the arrival point
 			ref.current.position.copy(b);
+		}
+
+		// ✅ NEW: compute label for this segment + round
+		const baseIdx = index - 1 + 5 * k;
+
+		const pick = (arr) => {
+			if (!Array.isArray(arr) || arr.length === 0) return "";
+			if (baseIdx < 0) return "";
+			if (baseIdx >= arr.length) return ""; // "until end reached" → blank once out of range
+			return arr[baseIdx];
+		};
+
+		let nextLabel = "";
+		if (segIndex === 0) nextLabel = pick(btyr);
+		else if (segIndex === 1) nextLabel = pick(tyr);
+		else if (segIndex === 2) nextLabel = pick(ldopa);
+		else if (segIndex === 3) nextLabel = pick(cda);
+		else if (segIndex === 4) nextLabel = pick(vda);
+
+		// update state only when it actually changes
+		const key = `${k}:${segIndex}:${nextLabel}`;
+		if (lastLabelKey.current !== key) {
+			lastLabelKey.current = key;
+			setLabel(nextLabel);
 		}
 	});
 
@@ -67,7 +99,7 @@ function SphereMover({ offset, label = "223 mM", useSimTime }) {
 				billboard
 				scale={[-1, 1, 1]}
 			>
-				{label}
+				{label === "" ? "" : `${label}mM`}
 			</Text>
 		</group>
 	);

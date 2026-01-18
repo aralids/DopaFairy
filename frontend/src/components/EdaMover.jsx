@@ -1,57 +1,64 @@
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import * as THREE from "three";
 import {
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
 	EDA_PATH_POINTS,
 } from "../config/config";
+import { destroyed } from "../config/steadyState";
 
-function EdaMover({ label = "223 mM", useSimTime }) {
+function EdaMover({ label: _label = "223 mM", useSimTime }) {
 	const p = EDA_PATH_POINTS;
-	const offset = 0;
+
+	// same offset scheme as others
+	const offset = 5 * (MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC);
+
 	const p0 = p[0];
 	const p1 = p[1];
+
 	const moveDuration = MOVE_DURATION_IN_SIM_SEC;
 	const pauseDuration = PAUSE_DURATION_IN_SIM_SEC;
 
-	const pause1 = 0;
-	const move1 = moveDuration;
-	const pause2 = pauseDuration;
-
-	const beat = move1 + pause2; // same unit as other movers
-	const syncedOffset = offset * beat; // offset is in beats
-
 	const ref = useRef();
-	const { simTime } = useSimTime(); // ✅ NEW
+	const { simTime } = useSimTime();
+
+	// ✅ label state driven by array (same as DatMover)
+	const [label, setLabel] = useState("");
+	const lastLabelKey = useRef(null);
 
 	const v0 = useRef(new THREE.Vector3(...p0));
 	const v1 = useRef(new THREE.Vector3(...p1));
 
-	const t1 = pause1;
-	const t2 = t1 + move1;
-	const t3 = t2 + pause2;
-	const cycle = t3;
+	const cycle = moveDuration + pauseDuration;
 
 	useFrame(() => {
 		if (!ref.current) return;
 
-		const globalT = simTime.current + syncedOffset; // ✅ CHANGED
+		const globalT = simTime.current + offset;
 		const localT = ((globalT % cycle) + cycle) % cycle;
 
-		if (localT < t1) {
-			ref.current.position.copy(v0.current);
-			return;
+		// ✅ advance label once per cycle, starting at destroyed[5]
+		const k = Math.floor(globalT / cycle);
+		const idx = 5 + k;
+
+		const nextLabel =
+			idx >= 0 && idx < (destroyed?.length ?? 0) ? destroyed[idx] : "";
+
+		const key = `${k}:${idx}:${nextLabel}`;
+		if (lastLabelKey.current !== key) {
+			lastLabelKey.current = key;
+			setLabel(nextLabel);
 		}
 
-		if (localT < t2) {
-			const u = (localT - t1) / move1;
+		// move, then pause at end
+		if (localT < moveDuration) {
+			const u = localT / moveDuration;
 			ref.current.position.lerpVectors(v0.current, v1.current, u);
-			return;
+		} else {
+			ref.current.position.copy(v1.current);
 		}
-
-		ref.current.position.copy(v1.current);
 	});
 
 	return (
@@ -69,7 +76,7 @@ function EdaMover({ label = "223 mM", useSimTime }) {
 				billboard
 				scale={[-1, 1, 1]}
 			>
-				{label}
+				{label === "" ? "" : `${label}mM`}
 			</Text>
 		</group>
 	);
