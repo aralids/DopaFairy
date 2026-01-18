@@ -51,8 +51,15 @@ function SimClockDisplay({
 	// In-world label
 	return (
 		<group position={position}>
-			<Html center>
-				<div style={style}>{label}</div>
+			<Html
+				fullscreen
+				transform={false}
+				pointerEvents="none"
+				zIndexRange={[100, 0]}
+			>
+				<div style={{ position: "absolute", top: 12, left: 12, ...style }}>
+					{label}
+				</div>
 			</Html>
 		</group>
 	);

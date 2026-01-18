@@ -6,11 +6,14 @@ function EnzymeMover({
 	p0,
 	p1,
 	p2,
-	move1 = 1.5,
-	pause = 0.3,
-	move2 = 1.5,
+	moveDuration = 1.5,
+	pauseDuration = 0.3,
 	offset = 1.5,
 }) {
+	const move1 = moveDuration;
+	const pause = pauseDuration;
+	const move2 = moveDuration;
+
 	const ref = useRef();
 
 	const v0 = useRef(new THREE.Vector3(...p0));

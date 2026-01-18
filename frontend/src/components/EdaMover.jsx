@@ -3,13 +3,19 @@ import { Text } from "@react-three/drei";
 import { useRef } from "react";
 import * as THREE from "three";
 
-function EdaMover({ p, offset = 0, label = "223 mM" }) {
+function EdaMover({
+	p,
+	offset = 0,
+	label = "223 mM",
+	moveDuration = 3,
+	pauseDuration = 0.3,
+}) {
 	const p0 = p[0];
 	const p1 = p[1];
 
 	const pause1 = 0;
-	const move1 = 3;
-	const pause2 = 0.3;
+	const move1 = moveDuration;
+	const pause2 = pauseDuration;
 
 	const beat = move1 + pause2; // ✅ same unit as your other movers (3.3)
 	const syncedOffset = offset * beat; // ✅ offset is now in "beats"

@@ -1,14 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReducedViewer from "./components/ReducedViewer";
 
-function pad2(n) {
-	return String(n).padStart(2, "0");
-}
-
-// 24h in 2.4 minutes = 144 seconds real-time
-const REAL_SECONDS_PER_SIM_DAY = 144;
-const REAL_SECONDS_PER_SIM_HOUR = REAL_SECONDS_PER_SIM_DAY / 24; // 6 seconds per sim hour
-
 function App() {
 	const [scale, setScale] = useState(1);
 	const [modelUrl, setModelUrl] = useState(null);
@@ -28,10 +20,6 @@ function App() {
 
 	// NEW: steady state vs circadian
 	const [simMode, setSimMode] = useState("steady"); // "steady" | "circadian"
-
-	// NEW: circadian clock
-	const circadianStartMsRef = useRef(null);
-	const [simClockSeconds, setSimClockSeconds] = useState(0);
 
 	// NEW: dummy circadian toggles
 	const [circ1, setCirc1] = useState(false);
@@ -68,37 +56,6 @@ function App() {
 			setLoading(false);
 		}
 	};
-
-	// Run/reset circadian clock only when mode is circadian
-	useEffect(() => {
-		if (simMode !== "circadian") return;
-
-		// reset clock whenever switching into circadian mode
-		circadianStartMsRef.current = performance.now();
-		setSimClockSeconds(0);
-
-		const id = window.setInterval(() => {
-			const start = circadianStartMsRef.current ?? performance.now();
-			const elapsedRealSec = (performance.now() - start) / 1000;
-
-			// map real seconds -> simulated seconds (scaled so 144 real sec = 86400 sim sec)
-			const simSecondsPerRealSecond = 86400 / REAL_SECONDS_PER_SIM_DAY;
-			const simSec = elapsedRealSec * simSecondsPerRealSecond;
-
-			// keep within a 24h loop
-			setSimClockSeconds(simSec % 86400);
-		}, 200);
-
-		return () => window.clearInterval(id);
-	}, [simMode]);
-
-	const simClockLabel = useMemo(() => {
-		const total = Math.floor(simClockSeconds);
-		const hh = Math.floor(total / 3600);
-		const mm = Math.floor((total % 3600) / 60);
-		const ss = total % 60;
-		return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
-	}, [simClockSeconds]);
 
 	return (
 		<div style={styles.page}>
@@ -153,6 +110,7 @@ function App() {
 								autoCamera={autoCamera}
 								setAutoCamera={setAutoCamera}
 								cameraResetId={cameraResetId}
+								simMode={simMode}
 							/>
 						)}
 					</div>
@@ -184,18 +142,6 @@ function App() {
 								circadian
 							</button>
 						</div>
-
-						{simMode === "circadian" && (
-							<div style={styles.clockBox}>
-								<div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>
-									{`Simulation clock (24h = ${REAL_SECONDS_PER_SIM_DAY / 60} min)`}
-								</div>
-								<div style={styles.clockTime}>{simClockLabel}</div>
-								<div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-									1 sim hour = {REAL_SECONDS_PER_SIM_HOUR.toFixed(0)}s real-time
-								</div>
-							</div>
-						)}
 					</div>
 
 					<div style={styles.card}>

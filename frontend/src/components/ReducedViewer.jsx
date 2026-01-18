@@ -51,6 +51,9 @@ const checkpointPositions = [
 	[0.000059, 0.529464, 0.001682],
 ];
 
+const MOVE_DURATION = 3;
+const PAUSE_DURATION = 0.3;
+
 const edaDestructionPosition = [0.113718, 0.529464, -0.248264];
 
 function Model({ url, mode }) {
@@ -112,8 +115,10 @@ const Viewer = ({
 	autoCamera,
 	setAutoCamera,
 	cameraResetId,
+	simMode,
 }) => {
 	const controlsRef = useRef();
+
 	return (
 		<Canvas camera={{ position: [-3, 3, 3], fov: 50 }}>
 			<SimClock>
@@ -166,6 +171,8 @@ const Viewer = ({
 							key={`molecule-${index}`}
 							p={checkpointPositions}
 							offset={(index - 1) * 3.3}
+							moveDuration={MOVE_DURATION}
+							pauseDuration={PAUSE_DURATION}
 						/>
 					) : (
 						<></>
@@ -179,18 +186,28 @@ const Viewer = ({
 							p1={[pos[0], pos[1], pos[2]]}
 							p2={[pos[0], pos[1] + 0.03, pos[2]]}
 							offset={1.3}
+							moveDuration={MOVE_DURATION / 2}
+							pauseDuration={PAUSE_DURATION}
 						/>
 					) : (
 						<></>
 					),
 				)}
-				<EdaMover p={[checkpointPositions[5], edaDestructionPosition]} />
-				<DatMover />
-				<Model url={modelUrl} mode={mode} />
-				<SimClockDisplay
-					useSimTime={useSimTime}
-					SIM_SECONDS_PER_DAY={SIM_SECONDS_PER_DAY}
+				<EdaMover
+					p={[checkpointPositions[5], edaDestructionPosition]}
+					moveDuration={MOVE_DURATION}
+					pauseDuration={PAUSE_DURATION}
 				/>
+				<DatMover moveDuration={MOVE_DURATION} endPause={PAUSE_DURATION} />
+				<Model url={modelUrl} mode={mode} />
+				{simMode === "circadian" ? (
+					<SimClockDisplay
+						useSimTime={useSimTime}
+						SIM_SECONDS_PER_DAY={SIM_SECONDS_PER_DAY}
+					/>
+				) : (
+					<></>
+				)}
 			</SimClock>
 		</Canvas>
 	);
