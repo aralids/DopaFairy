@@ -14,6 +14,8 @@ import {
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
 } from "../config/config";
+import { LDOPA_CO, TYR_CO } from "../config/circadianOscillation";
+import Depot from "./Depot";
 
 // shared clock context
 const SimClockContext = createContext({ simTime: { current: 0 }, speed: 1 });
@@ -136,23 +138,6 @@ const Viewer = ({
 						// console.log("cameraTarget:", [t.x, t.y, t.z]);
 					}}
 				/>
-				<group name={`tyr-storage`} position={CHECKPOINT_POSITIONS[1]}>
-					<mesh name={`tyr-storage`}>
-						<sphereGeometry args={[0.015, 32, 32]} />
-						<meshStandardMaterial color="hotpink" />
-					</mesh>
-
-					<Text
-						position={[0, -0.04, 0]}
-						fontSize={0.02}
-						anchorX="center"
-						anchorY="top"
-						billboard
-						scale={[-1, 1, 1]}
-					>
-						{"tyr"}
-					</Text>
-				</group>
 				{...CHECKPOINT_POSITIONS.map((pos, index) =>
 					index > 0 ? (
 						<SphereMover
@@ -169,19 +154,6 @@ const Viewer = ({
 						<></>
 					),
 				)}
-				{...CHECKPOINT_POSITIONS.map((pos, index) =>
-					index > 1 && index !== 5 ? (
-						<EnzymeMover
-							key={`enzyme-${index}`}
-							p0={[pos[0], pos[1] + 0.03, pos[2]]}
-							p1={[pos[0], pos[1], pos[2]]}
-							p2={[pos[0], pos[1] + 0.03, pos[2]]}
-							useSimTime={useSimTime}
-						/>
-					) : (
-						<></>
-					),
-				)}
 				<EdaMover useSimTime={useSimTime} simMode={simMode} />
 				<DatMover useSimTime={useSimTime} simMode={simMode} />
 				<Model url={modelUrl} />
@@ -190,6 +162,18 @@ const Viewer = ({
 				) : (
 					<></>
 				)}
+				<Depot
+					name={"tyr"}
+					pos={CHECKPOINT_POSITIONS[1]}
+					tEvol={TYR_CO}
+					useSimTime={useSimTime}
+				/>
+				<Depot
+					name={"l-dopa"}
+					pos={CHECKPOINT_POSITIONS[2]}
+					tEvol={LDOPA_CO}
+					useSimTime={useSimTime}
+				/>
 			</SimClock>
 		</Canvas>
 	);

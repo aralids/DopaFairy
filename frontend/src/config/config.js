@@ -1,4 +1,4 @@
-import { realSec2SimSec } from "../utils/simTime";
+import { realSec2SimSec } from "../utils/helper_functions";
 
 export const REAL_SECONDS_PER_SIM_DAY = 330;
 export const SIM_SECONDS_PER_DAY = 24 * 60 * 60;

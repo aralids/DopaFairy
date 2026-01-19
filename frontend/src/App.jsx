@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import ReducedViewer from "./components/ReducedViewer";
 import { styles } from "./styles/app.styles";
-import { downsampleByNearestMultiple } from "./utils/simTime";
+import { downsampleByNearestMultiple } from "./utils/helper_functions";
 
 function App() {
 	const [scale, setScale] = useState(1);

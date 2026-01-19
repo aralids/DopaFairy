@@ -48,6 +48,8 @@ export function downsampleByNearestMultiple(data, period, tMax = null) {
 				)
 			: arr2d;
 
+	console.log("y[0]: ", JSON.stringify(pick2D(data.y)[0]));
+
 	return {
 		...data,
 		t: keepIdx.map((j) => t[j]),
@@ -56,4 +58,34 @@ export function downsampleByNearestMultiple(data, period, tMax = null) {
 		reuptaken: pick1D(data.reuptaken),
 		destroyed: pick1D(data.destroyed),
 	};
+}
+
+export function mapValuesToSizes(
+	values,
+	minSize,
+	maxSize,
+	fallback = (minSize + maxSize) / 2,
+) {
+	if (!values || values.length === 0) {
+		return [fallback];
+	}
+
+	let minVal = Infinity;
+	let maxVal = -Infinity;
+
+	for (const v of values) {
+		if (v < minVal) minVal = v;
+		if (v > maxVal) maxVal = v;
+	}
+
+	// all values identical → constant size
+	if (minVal === maxVal) {
+		return values.map(() => fallback);
+	}
+
+	const span = maxVal - minVal;
+
+	return values.map(
+		(v) => minSize + ((v - minVal) / span) * (maxSize - minSize),
+	);
 }
