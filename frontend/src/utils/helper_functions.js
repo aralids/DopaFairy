@@ -60,23 +60,36 @@ export function downsampleByNearestMultiple(data, period, tMax = null) {
 	};
 }
 
+export function minOf(arr) {
+	let min = Infinity;
+	for (const v of arr) {
+		if (v < min) min = v;
+	}
+	return min;
+}
+
+export function maxOf(arr) {
+	let max = -Infinity;
+	for (const v of arr) {
+		if (v > max) max = v;
+	}
+	return max;
+}
+
 export function mapValuesToSizes(
 	values,
 	minSize,
 	maxSize,
+	minGlobalValue,
+	maxGlobalValue,
 	fallback = (minSize + maxSize) / 2,
 ) {
 	if (!values || values.length === 0) {
 		return [fallback];
 	}
 
-	let minVal = Infinity;
-	let maxVal = -Infinity;
-
-	for (const v of values) {
-		if (v < minVal) minVal = v;
-		if (v > maxVal) maxVal = v;
-	}
+	let minVal = minGlobalValue;
+	let maxVal = maxGlobalValue;
 
 	// all values identical → constant size
 	if (minVal === maxVal) {

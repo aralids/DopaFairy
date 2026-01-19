@@ -20,6 +20,8 @@ import {
 	CDA_CO,
 	VDA_CO,
 	EDA_CO,
+	MIN_VALUE_CO,
+	MAX_VALUE_CO,
 } from "../config/circadianOscillation";
 import {
 	TYR_SS,
@@ -27,6 +29,8 @@ import {
 	CDA_SS,
 	VDA_SS,
 	EDA_SS,
+	MIN_VALUE_SS,
+	MAX_VALUE_SS,
 } from "../config/steadyState";
 
 import Depot from "./Depot";
@@ -181,30 +185,40 @@ const Viewer = ({
 					pos={CHECKPOINT_POSITIONS[1]}
 					tEvol={simMode === "steady" ? TYR_SS : TYR_CO}
 					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
 				/>
 				<Depot
 					name={"l-dopa"}
 					pos={CHECKPOINT_POSITIONS[2]}
 					tEvol={simMode === "steady" ? LDOPA_SS : LDOPA_CO}
 					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
 				/>
 				<Depot
 					name={"cda"}
 					pos={CHECKPOINT_POSITIONS[3]}
 					tEvol={simMode === "steady" ? CDA_SS : CDA_CO}
 					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
 				/>
 				<Depot
 					name={"vda"}
 					pos={CHECKPOINT_POSITIONS[4]}
 					tEvol={simMode === "steady" ? VDA_SS : VDA_CO}
 					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
 				/>
 				<Depot
 					name={"eda"}
 					pos={CHECKPOINT_POSITIONS[5]}
 					tEvol={simMode === "steady" ? EDA_SS : EDA_CO}
 					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
 				/>
 			</SimClock>
 		</Canvas>

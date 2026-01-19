@@ -3,6 +3,7 @@ import {
 	PAUSE_DURATION_IN_REAL_SEC,
 	REAL_SECONDS_PER_SIM_DAY,
 } from "./config";
+import { minOf, maxOf } from "../utils/helper_functions";
 
 export const T_CO = Array.from(
 	{
@@ -151,3 +152,18 @@ export const EDA_CO = [
 ];
 export const DESTROYED_CO = repeat(2);
 export const REUPTAKEN_CO = repeat(3);
+
+export const MIN_VALUE_CO = minOf([
+	...TYR_CO,
+	...LDOPA_CO,
+	...CDA_CO,
+	...VDA_CO,
+	...EDA_CO,
+]);
+export const MAX_VALUE_CO = maxOf([
+	...TYR_CO,
+	...LDOPA_CO,
+	...CDA_CO,
+	...VDA_CO,
+	...EDA_CO,
+]);

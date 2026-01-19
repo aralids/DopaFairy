@@ -12,9 +12,23 @@ import {
 import { mapValuesToSizes, formatNumber } from "../utils/helper_functions";
 import { sampleScalarTrack } from "../utils/animation_functions";
 
-const Depot = ({ name, pos, tEvol = [], useSimTime }) => {
+const Depot = ({
+	name,
+	pos,
+	tEvol = [],
+	useSimTime,
+	minGlobalValue,
+	maxGlobalValue,
+}) => {
 	const sizes = useMemo(
-		() => mapValuesToSizes(tEvol, MIN_SPHERE_SIZE, MAX_SPHERE_SIZE),
+		() =>
+			mapValuesToSizes(
+				tEvol,
+				MIN_SPHERE_SIZE,
+				MAX_SPHERE_SIZE,
+				minGlobalValue,
+				maxGlobalValue,
+			),
 		[tEvol],
 	);
 
@@ -44,7 +58,7 @@ const Depot = ({ name, pos, tEvol = [], useSimTime }) => {
 			lerpSec: PAUSE_DURATION_IN_SIM_SEC,
 		});
 
-		const next = `${name}\n${formatNumber(val, 3)}mM`;
+		const next = `${name}\n${formatNumber(val, 3)} mM`;
 		if (textRef.current && next !== lastText.current) {
 			lastText.current = next;
 			textRef.current.text = next; // ✅ updates without React re-render
