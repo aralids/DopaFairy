@@ -14,7 +14,21 @@ import {
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
 } from "../config/config";
-import { LDOPA_CO, TYR_CO } from "../config/circadianOscillation";
+import {
+	TYR_CO,
+	LDOPA_CO,
+	CDA_CO,
+	VDA_CO,
+	EDA_CO,
+} from "../config/circadianOscillation";
+import {
+	TYR_SS,
+	LDOPA_SS,
+	CDA_SS,
+	VDA_SS,
+	EDA_SS,
+} from "../config/steadyState";
+
 import Depot from "./Depot";
 
 // shared clock context
@@ -165,13 +179,31 @@ const Viewer = ({
 				<Depot
 					name={"tyr"}
 					pos={CHECKPOINT_POSITIONS[1]}
-					tEvol={TYR_CO}
+					tEvol={simMode === "steady" ? TYR_SS : TYR_CO}
 					useSimTime={useSimTime}
 				/>
 				<Depot
 					name={"l-dopa"}
 					pos={CHECKPOINT_POSITIONS[2]}
-					tEvol={LDOPA_CO}
+					tEvol={simMode === "steady" ? LDOPA_SS : LDOPA_CO}
+					useSimTime={useSimTime}
+				/>
+				<Depot
+					name={"cda"}
+					pos={CHECKPOINT_POSITIONS[3]}
+					tEvol={simMode === "steady" ? CDA_SS : CDA_CO}
+					useSimTime={useSimTime}
+				/>
+				<Depot
+					name={"vda"}
+					pos={CHECKPOINT_POSITIONS[4]}
+					tEvol={simMode === "steady" ? VDA_SS : VDA_CO}
+					useSimTime={useSimTime}
+				/>
+				<Depot
+					name={"eda"}
+					pos={CHECKPOINT_POSITIONS[5]}
+					tEvol={simMode === "steady" ? EDA_SS : EDA_CO}
 					useSimTime={useSimTime}
 				/>
 			</SimClock>

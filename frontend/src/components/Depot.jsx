@@ -9,7 +9,7 @@ import {
 	PAUSE_DURATION_IN_SIM_SEC,
 } from "../config/config";
 
-import { mapValuesToSizes } from "../utils/helper_functions";
+import { mapValuesToSizes, formatNumber } from "../utils/helper_functions";
 import { sampleScalarTrack } from "../utils/animation_functions";
 
 const Depot = ({ name, pos, tEvol = [], useSimTime }) => {
@@ -19,6 +19,8 @@ const Depot = ({ name, pos, tEvol = [], useSimTime }) => {
 	);
 
 	const meshRef = useRef();
+	const textRef = useRef();
+	const lastText = useRef(""); // avoids setting same text every frame
 	const { simTime } = useSimTime();
 
 	useFrame(() => {
@@ -32,6 +34,21 @@ const Depot = ({ name, pos, tEvol = [], useSimTime }) => {
 		});
 
 		meshRef.current.scale.setScalar(s);
+
+		// --- LABEL NUMBER (smooth, parallel to size)
+		// Here we interpolate directly over the *raw* numbers in tEvol
+		const val = sampleScalarTrack({
+			t: simTime.current,
+			values: tEvol,
+			holdSec: MOVE_DURATION_IN_SIM_SEC,
+			lerpSec: PAUSE_DURATION_IN_SIM_SEC,
+		});
+
+		const next = `${name}\n${formatNumber(val, 3)}mM`;
+		if (textRef.current && next !== lastText.current) {
+			lastText.current = next;
+			textRef.current.text = next; // ✅ updates without React re-render
+		}
 	});
 
 	return (
@@ -42,6 +59,7 @@ const Depot = ({ name, pos, tEvol = [], useSimTime }) => {
 			</mesh>
 
 			<Text
+				ref={textRef}
 				position={[0, -0.04, 0]}
 				fontSize={0.02}
 				anchorX="center"

@@ -20,9 +20,10 @@ const repeat = (
 ) => Array(n).fill(value);
 
 export const BTYR_SS = repeat(0);
-export const TYR_SS = repeat(1);
-export const LDOPA_SS = repeat(2);
-export const CDA_SS = repeat(3);
-export const VDA_SS = repeat(4);
+export const TYR_SS = repeat(126);
+export const LDOPA_SS = repeat(3.55798434e-1);
+export const CDA_SS = repeat(2.64647902);
+export const VDA_SS = repeat(8.09585651e1);
+export const EDA_SS = repeat(2.02349121e-3);
 export const DESTROYED_SS = repeat(5);
 export const REUPTAKEN_SS = repeat(6);

@@ -48,7 +48,7 @@ export function downsampleByNearestMultiple(data, period, tMax = null) {
 				)
 			: arr2d;
 
-	console.log("y[0]: ", JSON.stringify(pick2D(data.y)[0]));
+	console.log("y[3]: ", JSON.stringify(pick2D(data.y)[3]));
 
 	return {
 		...data,
@@ -88,4 +88,11 @@ export function mapValuesToSizes(
 	return values.map(
 		(v) => minSize + ((v - minVal) / span) * (maxSize - minSize),
 	);
+}
+
+export function formatNumber(x, decimals = 3) {
+	if (!Number.isFinite(x)) return "";
+
+	// round to fixed decimals, then strip trailing zeros and optional dot
+	return x.toFixed(decimals).replace(/\.?0+$/, "");
 }
