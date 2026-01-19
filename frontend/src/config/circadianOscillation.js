@@ -153,17 +153,5 @@ export const EDA_CO = [
 export const DESTROYED_CO = repeat(2);
 export const REUPTAKEN_CO = repeat(3);
 
-export const MIN_VALUE_CO = minOf([
-	...TYR_CO,
-	...LDOPA_CO,
-	...CDA_CO,
-	...VDA_CO,
-	...EDA_CO,
-]);
-export const MAX_VALUE_CO = maxOf([
-	...TYR_CO,
-	...LDOPA_CO,
-	...CDA_CO,
-	...VDA_CO,
-	...EDA_CO,
-]);
+export const MIN_VALUE_CO = 0.3;
+export const MAX_VALUE_CO = 0.4;

@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 export function clamp01(x) {
 	return Math.min(1, Math.max(0, x));
 }

@@ -76,6 +76,18 @@ export function maxOf(arr) {
 	return max;
 }
 
+function clamp01(x) {
+	return Math.max(0, Math.min(1, x));
+}
+
+// Contrast curve to amplify small differences (S-curve)
+function contrastCurve(u, contrast = 4) {
+	// u in [0,1]
+	const x = (u - 0.5) * contrast;
+	const y = Math.tanh(x);
+	return 0.5 + 0.5 * y;
+}
+
 export function mapValuesToSizes(
 	values,
 	minSize,
@@ -84,23 +96,29 @@ export function mapValuesToSizes(
 	maxGlobalValue,
 	fallback = (minSize + maxSize) / 2,
 ) {
-	if (!values || values.length === 0) {
-		return [fallback];
-	}
+	if (!values || values.length === 0) return [fallback];
 
-	let minVal = minGlobalValue;
-	let maxVal = maxGlobalValue;
+	const minVal = Number(minGlobalValue);
+	const maxVal = Number(maxGlobalValue);
 
-	// all values identical → constant size
-	if (minVal === maxVal) {
+	if (
+		!Number.isFinite(minVal) ||
+		!Number.isFinite(maxVal) ||
+		minVal === maxVal
+	) {
 		return values.map(() => fallback);
 	}
 
 	const span = maxVal - minVal;
 
-	return values.map(
-		(v) => minSize + ((v - minVal) / span) * (maxSize - minSize),
-	);
+	return values.map((raw) => {
+		const v = Number(raw);
+		if (!Number.isFinite(v)) return fallback;
+
+		const u = (v - minVal) / span;
+		const uu = Math.max(0, Math.min(1, u)); // clamp to [0,1]
+		return minSize + uu * (maxSize - minSize);
+	});
 }
 
 export function formatNumber(x, decimals = 3) {

@@ -13,6 +13,8 @@ import {
 	CHECKPOINT_POSITIONS,
 	MOVE_DURATION_IN_SIM_SEC,
 	PAUSE_DURATION_IN_SIM_SEC,
+	EDA_PATH_POINTS,
+	DAT_CURVE_POINTS,
 } from "../config/config";
 import {
 	TYR_CO,
@@ -20,8 +22,6 @@ import {
 	CDA_CO,
 	VDA_CO,
 	EDA_CO,
-	MIN_VALUE_CO,
-	MAX_VALUE_CO,
 } from "../config/circadianOscillation";
 import {
 	TYR_SS,
@@ -34,6 +34,9 @@ import {
 } from "../config/steadyState";
 
 import Depot from "./Depot";
+import MoleculeMover from "./MoleculeMover";
+import MoleculeMoverAlongCurve from "./MoleculeMoverAlongCurve";
+import { minOf, maxOf } from "../utils/helper_functions";
 
 // shared clock context
 const SimClockContext = createContext({ simTime: { current: 0 }, speed: 1 });
@@ -156,24 +159,6 @@ const Viewer = ({
 						// console.log("cameraTarget:", [t.x, t.y, t.z]);
 					}}
 				/>
-				{...CHECKPOINT_POSITIONS.map((pos, index) =>
-					index > 0 ? (
-						<SphereMover
-							key={`molecule-${index}`}
-							index={index}
-							offset={
-								(index - 1) *
-								(MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC)
-							}
-							useSimTime={useSimTime}
-							simMode={simMode}
-						/>
-					) : (
-						<></>
-					),
-				)}
-				<EdaMover useSimTime={useSimTime} simMode={simMode} />
-				<DatMover useSimTime={useSimTime} simMode={simMode} />
 				<Model url={modelUrl} />
 				{simMode === "circadian" ? (
 					<SimClockDisplay useSimTime={useSimTime} />
@@ -185,40 +170,96 @@ const Viewer = ({
 					pos={CHECKPOINT_POSITIONS[1]}
 					tEvol={simMode === "steady" ? TYR_SS : TYR_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
+					minGlobalValue={MIN_VALUE_SS}
+					maxGlobalValue={MAX_VALUE_SS}
 				/>
 				<Depot
-					name={"l-dopa"}
+					name={"ldopa"}
 					pos={CHECKPOINT_POSITIONS[2]}
 					tEvol={simMode === "steady" ? LDOPA_SS : LDOPA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
 				/>
 				<Depot
 					name={"cda"}
 					pos={CHECKPOINT_POSITIONS[3]}
 					tEvol={simMode === "steady" ? CDA_SS : CDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(CDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(CDA_CO)}
 				/>
 				<Depot
 					name={"vda"}
 					pos={CHECKPOINT_POSITIONS[4]}
 					tEvol={simMode === "steady" ? VDA_SS : VDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
 				/>
 				<Depot
 					name={"eda"}
 					pos={CHECKPOINT_POSITIONS[5]}
 					tEvol={simMode === "steady" ? EDA_SS : EDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : MIN_VALUE_CO}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : MAX_VALUE_CO}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(EDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(EDA_CO)}
+				/>
+				<MoleculeMover
+					name={"btyr"}
+					pos={[CHECKPOINT_POSITIONS[0], CHECKPOINT_POSITIONS[1]]}
+					tEvol={LDOPA_CO}
+					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+				/>
+				<MoleculeMover
+					name={"tyr"}
+					pos={[CHECKPOINT_POSITIONS[1], CHECKPOINT_POSITIONS[2]]}
+					tEvol={LDOPA_CO}
+					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+				/>
+				<MoleculeMover
+					name={"ldopa"}
+					pos={[CHECKPOINT_POSITIONS[2], CHECKPOINT_POSITIONS[3]]}
+					tEvol={CDA_CO}
+					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+				/>
+				<MoleculeMover
+					name={"cda"}
+					pos={[CHECKPOINT_POSITIONS[3], CHECKPOINT_POSITIONS[4]]}
+					tEvol={CDA_CO}
+					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+				/>
+				<MoleculeMover
+					name={"vda"}
+					pos={[CHECKPOINT_POSITIONS[4], CHECKPOINT_POSITIONS[5]]}
+					tEvol={CDA_CO}
+					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+				/>
+				<MoleculeMover
+					name={"eda-mao"}
+					pos={[EDA_PATH_POINTS[0], EDA_PATH_POINTS[1]]}
+					tEvol={CDA_CO}
+					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+				/>
+				<MoleculeMoverAlongCurve
+					name={"eda-dat"}
+					pos={DAT_CURVE_POINTS}
+					tEvol={CDA_CO}
+					useSimTime={useSimTime}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
 				/>
 			</SimClock>
 		</Canvas>
