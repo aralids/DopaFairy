@@ -15,9 +15,28 @@ import {
 	MIN_VDA_AMOUNT,
 	MAX_VDA_AMOUNT,
 } from "../config/config";
-import { btyr, tyr, ldopa, cda, vda } from "../config/steadyState";
+import {
+	BTYR_SS,
+	TYR_SS,
+	LDOPA_SS,
+	CDA_SS,
+	VDA_SS,
+} from "../config/steadyState";
+import {
+	BTYR_CO,
+	TYR_CO,
+	LDOPA_CO,
+	CDA_CO,
+	VDA_CO,
+} from "../config/circadianOscillation";
 
-function SphereMover({ offset, index, useSimTime }) {
+function SphereMover({ offset, index, useSimTime, simMode, numericSolution }) {
+	const btyr = simMode === "steady" ? BTYR_SS : BTYR_CO;
+	const tyr = simMode === "steady" ? TYR_SS : TYR_CO;
+	const ldopa = simMode === "steady" ? LDOPA_SS : LDOPA_CO;
+	const cda = simMode === "steady" ? CDA_SS : CDA_CO;
+	const vda = simMode === "steady" ? VDA_SS : VDA_CO;
+
 	const p = CHECKPOINT_POSITIONS;
 	const moveDuration = MOVE_DURATION_IN_SIM_SEC;
 	const pauseDuration = PAUSE_DURATION_IN_SIM_SEC;
@@ -58,8 +77,9 @@ function SphereMover({ offset, index, useSimTime }) {
 	const getAmountAndRangeForSeg = (segIndex, baseIdx) => {
 		const pickVal = (arr) => {
 			if (!Array.isArray(arr) || arr.length === 0) return "";
-			if (baseIdx < 0 || baseIdx >= arr.length) return "";
-			return arr[baseIdx];
+			// wrap around once we reach the end
+			const i = ((baseIdx % arr.length) + arr.length) % arr.length;
+			return arr[i];
 		};
 
 		// NOTE: you only provided MIN/MAX for ldopa/cda/vda.

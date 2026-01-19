@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import ReducedViewer from "./components/ReducedViewer";
 import { styles } from "./styles/app.styles";
+import { downsampleByNearestMultiple } from "./utils/simTime";
 
 function App() {
 	const [scale, setScale] = useState(1);
@@ -21,6 +22,10 @@ function App() {
 	const [circ1, setCirc1] = useState(false);
 	const [circ2, setCirc2] = useState(false);
 	const [circ3, setCirc3] = useState(false);
+
+	const [dose, setDose] = useState(0);
+	const [halfTime, setHalfTime] = useState(15);
+	const [adminTime, setAdminTime] = useState(0);
 
 	const yaoLink = useMemo(() => {
 		// TODO: replace with the actual paper URL/DOI once you have it
@@ -50,6 +55,35 @@ function App() {
 			setError("Could not load cube: " + err.message);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const handleComputeDrugInfluence = async () => {
+		try {
+			const response = await fetch(
+				"http://localhost:8000/synapse/compute_drug_influence",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						dose: dose,
+						half_life: halfTime,
+						t_admin: adminTime,
+					}),
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`);
+			}
+
+			const result = await response.json(); // object
+			const periodHours = 864 / 3600; // 0.24 h
+			const reduced = downsampleByNearestMultiple(result, periodHours);
+
+			console.log("Drug influence result:", reduced);
+		} catch (err) {
+			console.error("Failed to compute drug influence:", err);
 		}
 	};
 
@@ -208,6 +242,16 @@ function App() {
 								/>
 								<span>Toggle C</span>
 							</label>
+							<button
+								style={{
+									...styles.primaryButton,
+									width: "100%",
+									marginTop: 12,
+								}}
+								onClick={handleComputeDrugInfluence}
+							>
+								Compute drug influence
+							</button>
 						</div>
 					)}
 				</aside>

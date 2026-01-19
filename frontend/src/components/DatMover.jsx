@@ -12,9 +12,13 @@ import {
 	MIN_SPHERE_SIZE,
 	MAX_SPHERE_SIZE,
 } from "../config/config";
-import { cda, reuptaken } from "../config/steadyState";
+import { CDA_SS, REUPTAKEN_SS } from "../config/steadyState";
+import { CDA_CO, REUPTAKEN_CO } from "../config/circadianOscillation";
 
-function DatMover({ label: _label = "223 mM", useSimTime }) {
+function DatMover({ label: _label = "223 mM", useSimTime, simMode }) {
+	const cda = simMode === "steady" ? CDA_SS : CDA_CO;
+	const reuptaken = simMode === "steady" ? REUPTAKEN_SS : REUPTAKEN_CO;
+
 	const p = DAT_CURVE_POINTS;
 	const offset = 5 * (MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC);
 	const moveDuration = MOVE_DURATION_IN_SIM_SEC;

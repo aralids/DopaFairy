@@ -163,6 +163,7 @@ const Viewer = ({
 								(MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC)
 							}
 							useSimTime={useSimTime}
+							simMode={simMode}
 						/>
 					) : (
 						<></>
@@ -181,8 +182,8 @@ const Viewer = ({
 						<></>
 					),
 				)}
-				<EdaMover useSimTime={useSimTime} />
-				<DatMover useSimTime={useSimTime} />
+				<EdaMover useSimTime={useSimTime} simMode={simMode} />
+				<DatMover useSimTime={useSimTime} simMode={simMode} />
 				<Model url={modelUrl} />
 				{simMode === "circadian" ? (
 					<SimClockDisplay useSimTime={useSimTime} />

@@ -12,9 +12,13 @@ import {
 	MIN_SPHERE_SIZE,
 	MAX_SPHERE_SIZE,
 } from "../config/config";
-import { destroyed, vda } from "../config/steadyState";
+import { DESTROYED_SS, VDA_SS } from "../config/steadyState";
+import { DESTROYED_CO, VDA_CO } from "../config/circadianOscillation";
 
-function EdaMover({ label: _label = "223 mM", useSimTime }) {
+function EdaMover({ label: _label = "223 mM", useSimTime, simMode }) {
+	const destroyed = simMode === "steady" ? DESTROYED_SS : DESTROYED_CO;
+	const vda = simMode === "steady" ? VDA_SS : VDA_CO;
+
 	const p = EDA_PATH_POINTS;
 
 	const offset = 5 * (MOVE_DURATION_IN_SIM_SEC + PAUSE_DURATION_IN_SIM_SEC);
