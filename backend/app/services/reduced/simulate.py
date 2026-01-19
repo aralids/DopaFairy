@@ -5,27 +5,10 @@ from app.services.reduced.drug import x_dose
 from functools import partial
 
 from app.services.reduced.rates import V_DAT, V_CATAB, C_MAO
+from app.services.reduced.parameters import k_cda, k_eda  # <-- wherever you store these
 
 t_0 = 0
 t_n = 24
-
-def cumulative_trapezoid(y, x):
-    """
-    Cumulative integral using the trapezoidal rule.
-    Returns an array I with I[0] = 0 and I[i] = ∫_x0^xi y(x) dx.
-    """
-    y = np.asarray(y, dtype=float)
-    x = np.asarray(x, dtype=float)
-
-    if y.size != x.size:
-        raise ValueError("cumulative_trapezoid: x and y must have same length")
-    if x.size < 2:
-        return np.zeros_like(x)
-
-    dx = np.diff(x)  # length n-1
-    trap_areas = 0.5 * (y[:-1] + y[1:]) * dx
-    return np.concatenate(([0.0], np.cumsum(trap_areas)))
-
 
 def solve_reduced_model(u0, *, dose, half_life, t_admin):
     rhs = partial(
@@ -44,54 +27,52 @@ def solve_reduced_model(u0, *, dose, half_life, t_admin):
         atol=1e-12,
     )
 
-    t = np.asarray(sol.t, dtype=float)       # time grid (hours if your model uses hours)
-    y = np.asarray(sol.y, dtype=float)
-    eda = y[3, :]                            # extracellular dopamine
+    t = sol.t
+    y = sol.y
+    cda = y[1, :]   # <-- add
+    eda = y[3, :]
 
-    # x_dose(t) in [0, 1]
-    x_vals = np.array(
-        [x_dose(ti, dose=dose, half_life=half_life, t_admin=t_admin) for ti in t],
-        dtype=float
-    )
+    x_vals = np.array([
+        x_dose(ti, dose=dose, half_life=half_life, t_admin=t_admin)
+        for ti in t
+    ], dtype=float)
     x_vals = np.clip(x_vals, 0.0, 1.0)
 
-    # ----- instantaneous fluxes (mM / hour, assuming your params are in those units) -----
+    # Effective DAT flux (reuptake): (1 - x) * V_DAT(eda)
     vdat_base = np.array([V_DAT(e) for e in eda], dtype=float)
     vdat_eff = (1.0 - x_vals) * vdat_base
 
+    # Extracellular MAO/COMT catabolism: C_MAO(t) * V_CATAB(eda)
     vcatab_base = np.array([V_CATAB(e) for e in eda], dtype=float)
     cmao_vals = np.array([C_MAO(ti) for ti in t], dtype=float)
     vcatab_eff = vcatab_base * cmao_vals
 
-    # ----- AMOUNTS (integrated fluxes) -----
-    # Total amounts over the whole interval [t0, tn]
-    amount_eda_reuptaken_DAT = float(np.trapezoid(vdat_eff, t))
-    amount_eda_destroyed_MAO   = float(np.trapezoid(vcatab_eff, t))
+    # NEW: extracellular "other removal" term: k_eda * eda
+    vkeda = k_eda * np.asarray(eda, dtype=float)
 
-    # Cumulative amounts up to each time point
-    eda_reuptaken_DAT_cumulative = cumulative_trapezoid(vdat_eff, t)
-    eda_destroyed_MAO_cumulative   = cumulative_trapezoid(vcatab_eff, t)
+    dt = np.diff(t)  # length n-1
+
+    # per-interval reuptaken amount (between t[i] and t[i+1])
+    reuptaken_step = 0.5 * (vdat_eff[:-1] + vdat_eff[1:]) * dt
+
+    # per-interval extracellular destroyed amount (between t[i] and t[i+1])
+    destroyed_step = 0.5 * (
+        (vcatab_eff[:-1] + vkeda[:-1]) + (vcatab_eff[1:] + vkeda[1:])
+    ) * dt
+
+    reuptaken = np.concatenate(([0.0], reuptaken_step))
+    destroyed = np.concatenate(([0.0], destroyed_step))
 
 
     return {
         "t": t.tolist(),
         "y": y.tolist(),
-        "eda": eda.tolist(),
-
         "x_dose": x_vals.tolist(),
-
-        # fluxes (for plotting)
-        # "V_DAT_eff": vdat_eff.tolist(),
-        # "V_CATAB_eff": vcatab_eff.tolist(),
-
-        # TOTAL AMOUNTS over the full simulation
-        # "EDA_reuptaken_DAT_total": amount_eda_reuptaken_DAT,
-        # "EDA_destroyed_MAO_total": amount_eda_destroyed_MAO,
-
-        # CUMULATIVE AMOUNTS over time (so you can compare meaningfully)
-        "reuptaken": eda_reuptaken_DAT_cumulative.tolist(),
-        "destroyed": eda_destroyed_MAO_cumulative.tolist(),
+        "destroyed": destroyed.tolist(),
+        "reuptaken": reuptaken.tolist(),
     }
+
+
 
 
 
