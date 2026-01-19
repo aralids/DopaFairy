@@ -24,7 +24,7 @@ const MoleculeMoverAlongCurve = ({
 	offset = 0,
 }) => {
 	// sizes derived from your value track
-	const sizes = useMemo(
+	let sizes = useMemo(
 		() =>
 			mapValuesToSizes(
 				tEvol,
@@ -35,6 +35,7 @@ const MoleculeMoverAlongCurve = ({
 			),
 		[tEvol, minGlobalValue, maxGlobalValue],
 	);
+	sizes = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
 
 	const groupRef = useRef();
 	const meshRef = useRef();

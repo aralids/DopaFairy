@@ -81,7 +81,7 @@ function App() {
 			const periodHours = 864 / 3600; // 0.24 h
 			const reduced = downsampleByNearestMultiple(result, periodHours);
 
-			console.log("Drug influence result:", reduced);
+			console.log("Drug influence result:", result);
 		} catch (err) {
 			console.error("Failed to compute drug influence:", err);
 		}

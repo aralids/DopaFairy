@@ -22,6 +22,13 @@ import {
 	CDA_CO,
 	VDA_CO,
 	EDA_CO,
+	TYR_TO_LDOPA_CO,
+	LDOPA_TO_CDA_CO,
+	LOST_CDA_CO,
+	REUPTAKEN_CO,
+	CDA_TO_VDA_CO,
+	DESTROYED_CO,
+	LOST_EDA,
 } from "../config/circadianOscillation";
 import {
 	TYR_SS,
@@ -208,58 +215,58 @@ const Viewer = ({
 				<MoleculeMover
 					name={"btyr"}
 					pos={[CHECKPOINT_POSITIONS[0], CHECKPOINT_POSITIONS[1]]}
-					tEvol={LDOPA_CO}
+					tEvol={LDOPA_TO_CDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : 0}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : 126}
 				/>
 				<MoleculeMover
 					name={"tyr"}
 					pos={[CHECKPOINT_POSITIONS[1], CHECKPOINT_POSITIONS[2]]}
-					tEvol={LDOPA_CO}
+					tEvol={LDOPA_TO_CDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : 0}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : 126}
 				/>
 				<MoleculeMover
 					name={"ldopa"}
 					pos={[CHECKPOINT_POSITIONS[2], CHECKPOINT_POSITIONS[3]]}
-					tEvol={CDA_CO}
+					tEvol={LDOPA_TO_CDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(CDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(CDA_CO)}
 				/>
 				<MoleculeMover
 					name={"cda"}
 					pos={[CHECKPOINT_POSITIONS[3], CHECKPOINT_POSITIONS[4]]}
-					tEvol={CDA_CO}
+					tEvol={CDA_TO_VDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
 				/>
 				<MoleculeMover
 					name={"vda"}
 					pos={[CHECKPOINT_POSITIONS[4], CHECKPOINT_POSITIONS[5]]}
-					tEvol={CDA_CO}
+					tEvol={VDA_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
 				/>
 				<MoleculeMover
 					name={"eda-mao"}
 					pos={[EDA_PATH_POINTS[0], EDA_PATH_POINTS[1]]}
-					tEvol={CDA_CO}
+					tEvol={DESTROYED_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
 				/>
 				<MoleculeMoverAlongCurve
 					name={"eda-dat"}
 					pos={DAT_CURVE_POINTS}
-					tEvol={CDA_CO}
+					tEvol={REUPTAKEN_CO}
 					useSimTime={useSimTime}
-					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
-					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
+					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
 				/>
 			</SimClock>
 		</Canvas>

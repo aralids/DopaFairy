@@ -1,11 +1,13 @@
 import numpy as np
-from app.services.reduced.rhs import ODE_RHS
 from scipy.integrate import solve_ivp
-from app.services.reduced.drug import x_dose
 from functools import partial
 
-from app.services.reduced.rates import V_DAT, V_CATAB, C_MAO
-from app.services.reduced.parameters import k_cda, k_eda  # <-- wherever you store these
+from app.services.reduced.rhs import ODE_RHS
+from app.services.reduced.drug import x_dose
+from app.services.reduced.rates import (
+    V_TH, V_AADC, V_MAT, V_DAT, V_CATAB, C_TH, C_MAO
+)
+from app.services.reduced.parameters import k_cda, k_eda
 
 t_0 = 0
 t_n = 24
@@ -27,52 +29,56 @@ def solve_reduced_model(u0, *, dose, half_life, t_admin):
         atol=1e-12,
     )
 
-    t = sol.t
-    y = sol.y
-    cda = y[1, :]   # <-- add
-    eda = y[3, :]
+    t = sol.t                      # (N,)
+    y = sol.y                      # (4, N)
+    ldopa = y[0, :]
+    cda   = y[1, :]
+    vda   = y[2, :]
+    eda   = y[3, :]
 
-    x_vals = np.array([
-        x_dose(ti, dose=dose, half_life=half_life, t_admin=t_admin)
-        for ti in t
-    ], dtype=float)
+    # drug effect x(t) on the solver grid
+    x_vals = np.array(
+        [x_dose(ti, dose=dose, half_life=half_life, t_admin=t_admin) for ti in t],
+        dtype=float,
+    )
     x_vals = np.clip(x_vals, 0.0, 1.0)
 
-    # Effective DAT flux (reuptake): (1 - x) * V_DAT(eda)
-    vdat_base = np.array([V_DAT(e) for e in eda], dtype=float)
-    vdat_eff = (1.0 - x_vals) * vdat_base
+    # --- RATES on grid (N,) ---
+    tyrToLdopa_rate = np.array([V_TH(cda[i], eda[i]) * C_TH(t[i]) for i in range(len(t))], dtype=float)
+    ldopaToCda_rate = np.array([V_AADC(ldopa[i]) for i in range(len(t))], dtype=float)
 
-    # Extracellular MAO/COMT catabolism: C_MAO(t) * V_CATAB(eda)
-    vcatab_base = np.array([V_CATAB(e) for e in eda], dtype=float)
-    cmao_vals = np.array([C_MAO(ti) for ti in t], dtype=float)
-    vcatab_eff = vcatab_base * cmao_vals
+    lostCda_rate    = (k_cda * cda).astype(float)
+    reuptaken_rate  = np.array([V_DAT(eda[i]) * (1.0 - x_vals[i]) for i in range(len(t))], dtype=float)
 
-    # NEW: extracellular "other removal" term: k_eda * eda
-    vkeda = k_eda * np.asarray(eda, dtype=float)
+    cdaToVda_rate   = np.array([V_MAT(cda[i], vda[i]) for i in range(len(t))], dtype=float)
+    destroyed_rate  = np.array([V_CATAB(eda[i]) * C_MAO(t[i]) for i in range(len(t))], dtype=float)
+    lostEda_rate    = (k_eda * eda).astype(float)
 
-    dt = np.diff(t)  # length n-1
+    # --- AMOUNTS per interval (N-1,) using trapezoidal rule ---
+    dt = np.diff(t)  # (N-1,)
 
-    # per-interval reuptaken amount (between t[i] and t[i+1])
-    reuptaken_step = 0.5 * (vdat_eff[:-1] + vdat_eff[1:]) * dt
+    tyrToLdopa = 0.5 * (tyrToLdopa_rate[:-1] + tyrToLdopa_rate[1:]) * dt
+    ldopaToCda = 0.5 * (ldopaToCda_rate[:-1] + ldopaToCda_rate[1:]) * dt
 
-    # per-interval extracellular destroyed amount (between t[i] and t[i+1])
-    destroyed_step = 0.5 * (
-        (vcatab_eff[:-1] + vkeda[:-1]) + (vcatab_eff[1:] + vkeda[1:])
-    ) * dt
+    lostCda    = 0.5 * (lostCda_rate[:-1]    + lostCda_rate[1:])    * dt
+    reuptaken  = 0.5 * (reuptaken_rate[:-1]  + reuptaken_rate[1:])  * dt
 
-    reuptaken = np.concatenate(([0.0], reuptaken_step))
-    destroyed = np.concatenate(([0.0], destroyed_step))
-
+    cdaToVda   = 0.5 * (cdaToVda_rate[:-1]   + cdaToVda_rate[1:])   * dt
+    destroyed  = 0.5 * (destroyed_rate[:-1]  + destroyed_rate[1:])  * dt
+    lostEda    = 0.5 * (lostEda_rate[:-1]    + lostEda_rate[1:])    * dt
 
     return {
         "t": t.tolist(),
         "y": y.tolist(),
-        "x_dose": x_vals.tolist(),
-        "destroyed": destroyed.tolist(),
+        # NOTE: amounts are per-interval, so length is N-1 (between t[i] and t[i+1])
+        "tyrToLdopa": tyrToLdopa.tolist(),
+        "ldopaToCda": ldopaToCda.tolist(),
+        "lostCda": lostCda.tolist(),
         "reuptaken": reuptaken.tolist(),
+        "cdaToVda": cdaToVda.tolist(),
+        "destroyed": destroyed.tolist(),
+        "lostEda": lostEda.tolist(),
     }
-
-
 
 
 
