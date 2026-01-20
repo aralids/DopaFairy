@@ -3,6 +3,10 @@ from fastapi.responses import FileResponse
 from app.models.schemas import SynapseRequest, DrugRequest
 from app.services.blender_service import load_synapse_glb
 from app.services.reduced.simulate import solve_reduced_model
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[3]   # backend/app
+ASSETS_DIR = BASE_DIR.parent / "blender"         # backend/blender
 
 router = APIRouter(prefix="/synapse", tags=["Blender"])
 
@@ -30,3 +34,20 @@ def compute_drug_influence(data: DrugRequest):
     print("result eda: ", result["y"][3][-1])
 
     return result
+
+@router.get("/assets")
+def list_glb_assets():
+    print("HELLO")
+    glbs = sorted(ASSETS_DIR.glob("*.glb"))
+
+    assets = {p.stem: f"http://localhost:8000/assets/{p.name}" for p in glbs}
+    default = assets.get("synapse") or next(iter(assets.values()), None)
+
+
+    print("default: ", default)
+
+    return {
+        "default": default,
+        "assets": assets,
+    }
+

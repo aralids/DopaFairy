@@ -1,9 +1,33 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import ReducedViewer from "./components/ReducedViewer";
 import { styles } from "./styles/app.styles";
 import { downsampleByNearestMultiple } from "./utils/helper_functions";
 
 function App() {
+	const [assets, setAssets] = useState({});
+
+	useEffect(() => {
+		let cancelled = false;
+
+		async function loadManifest() {
+			try {
+				// This hits your FastAPI route: GET /synapse/assets
+				const res = await fetch("http://localhost:8000/synapse/assets");
+				if (!res.ok) throw new Error(`Manifest fetch failed: ${res.status}`);
+				const data = await res.json();
+
+				if (!cancelled) setAssets(data);
+			} catch (e) {
+				if (!cancelled) setError(String(e));
+			}
+		}
+
+		loadManifest();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
 	const [scale, setScale] = useState(1);
 	const [modelUrl, setModelUrl] = useState(null);
 	const [loading, setLoading] = useState(false);

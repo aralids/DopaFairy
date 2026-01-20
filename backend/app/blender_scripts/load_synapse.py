@@ -47,6 +47,12 @@ bpy.ops.wm.append(
     directory=directory,
     filename=collection_name,
 )
+
+collection_names = ["Collection"]  # or whatever collection contains MAO + meshes
+directory = str(blend_path) + r"\Collection\\"
+
+for cname in collection_names:
+    bpy.ops.wm.append(directory=directory, filename=cname)
 '''
 
 
@@ -55,5 +61,6 @@ bpy.ops.export_scene.gltf(
     filepath=str(output_path),
     export_format='GLB'
 )
+
 
 print(f"✅ Synapse exported successfully: {output_path}")

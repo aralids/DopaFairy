@@ -16,6 +16,7 @@ const MoleculeMover = ({
 	name,
 	pos,
 	tEvol,
+	tEvolDrug = null, // ✅ NEW: optional drug track (finite)
 	useSimTime,
 	minGlobalValue,
 	maxGlobalValue,
@@ -23,9 +24,8 @@ const MoleculeMover = ({
 	pauseDuration = PAUSE_DURATION_IN_SIM_SEC,
 	offset = 0,
 }) => {
-	// sizes derived from your value track
-
-	let sizes = useMemo(
+	// ✅ baseline sizes (loop forever)
+	let sizesBase = useMemo(
 		() =>
 			mapValuesToSizes(
 				tEvol,
@@ -37,7 +37,27 @@ const MoleculeMover = ({
 		[tEvol, minGlobalValue, maxGlobalValue],
 	);
 
-	sizes = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
+	sizesBase = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
+
+	// ✅ drug sizes (play once, then stop using)
+	let sizesDrug = useMemo(
+		() =>
+			tEvolDrug
+				? mapValuesToSizes(
+						tEvolDrug,
+						MIN_SPHERE_SIZE,
+						MAX_SPHERE_SIZE,
+						minGlobalValue,
+						maxGlobalValue,
+					)
+				: null,
+		[tEvolDrug, minGlobalValue, maxGlobalValue],
+	);
+	sizesDrug = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
+
+	// ⚠️ You had this line forcing everything to MIN_SPHERE_SIZE.
+	// That would make BOTH baseline + drug invisible. Removed.
+	// sizes = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
 
 	// refs
 	const groupRef = useRef();
@@ -58,21 +78,35 @@ const MoleculeMover = ({
 		const t = simTime.current + offset;
 		const localT = ((t % cycle) + cycle) % cycle;
 
-		// current index
-		const n = sizes?.length ?? 0;
-		if (n === 0) return;
+		const nBase = sizesBase?.length ?? 0;
+		if (nBase === 0) return;
 
+		const nDrug = sizesDrug?.length ?? 0;
+
+		// global step index (same clock for everyone)
 		const step = Math.floor(t / cycle);
-		const idx = ((step % n) + n) % n;
 
 		// ============================================================
 		// ======================= SIZE SNAP ==========================
-		// Size is defined ONLY by sizes[idx]
+		// Drug: finite, no wrap
+		// Baseline: loops forever after drug ends
 		// ============================================================
-		meshRef.current.scale.setScalar(sizes[idx]);
+		let size;
+
+		if (sizesDrug && step < nDrug) {
+			// drug phase: no modulo (finite)
+			size = sizesDrug[step];
+		} else {
+			// baseline phase: loop with modulo
+			const baseStep = sizesDrug ? step - nDrug : step;
+			const idx = ((baseStep % nBase) + nBase) % nBase;
+			size = sizesBase[idx];
+		}
+
+		meshRef.current.scale.setScalar(size);
 		// ============================================================
 
-		// movement
+		// movement (unchanged)
 		if (localT < moveDuration) {
 			const u = moveDuration > 0 ? localT / moveDuration : 1;
 			groupRef.current.position.lerpVectors(v0.current, v1.current, u);
@@ -83,7 +117,7 @@ const MoleculeMover = ({
 
 	return (
 		<group ref={groupRef} name={`${name}-depot`} position={pos[0]}>
-			<mesh ref={meshRef} scale={sizes?.[0] ?? 1}>
+			<mesh ref={meshRef} scale={sizesBase?.[0] ?? 1}>
 				<sphereGeometry args={[1, 32, 32]} />
 				<meshStandardMaterial color="hotpink" />
 			</mesh>

@@ -2,11 +2,19 @@ from fastapi import FastAPI
 from app.api.routes import synapse, cube
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
 app = FastAPI(
     title="DopaFairy",
     description="Interactive dopamine dynamics sandbox",
     version="0.1.0"
 )
+
+BASE_DIR = Path(__file__).resolve().parents[1]      # backend/app
+ASSETS_DIR = BASE_DIR.parent / "blender"            # backend/blender
+
+app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 
 app.add_middleware(
     CORSMiddleware,

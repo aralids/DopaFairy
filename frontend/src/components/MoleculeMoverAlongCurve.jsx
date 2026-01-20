@@ -16,6 +16,7 @@ const MoleculeMoverAlongCurve = ({
 	name,
 	pos = [], // array of points: [[x,y,z], [x,y,z], ...]
 	tEvol = [],
+	tEvolDrug, // ✅ optional
 	useSimTime,
 	minGlobalValue,
 	maxGlobalValue,
@@ -23,8 +24,8 @@ const MoleculeMoverAlongCurve = ({
 	pauseDuration = PAUSE_DURATION_IN_SIM_SEC,
 	offset = 0,
 }) => {
-	// sizes derived from your value track
-	let sizes = useMemo(
+	// base sizes
+	let sizesBase = useMemo(
 		() =>
 			mapValuesToSizes(
 				tEvol,
@@ -35,7 +36,22 @@ const MoleculeMoverAlongCurve = ({
 			),
 		[tEvol, minGlobalValue, maxGlobalValue],
 	);
-	sizes = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
+	sizesBase = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
+
+	// drug sizes (only if provided)
+	let sizesDrug = useMemo(() => {
+		if (!Array.isArray(tEvolDrug) || tEvolDrug.length === 0) return [];
+		return mapValuesToSizes(
+			tEvolDrug,
+			MIN_SPHERE_SIZE,
+			MAX_SPHERE_SIZE,
+			minGlobalValue,
+			maxGlobalValue,
+		);
+	}, [tEvolDrug, minGlobalValue, maxGlobalValue]);
+	sizesDrug = Array(tEvol.length).fill(MIN_SPHERE_SIZE);
+
+	const hasDrug = sizesDrug.length > 0;
 
 	const groupRef = useRef();
 	const meshRef = useRef();
@@ -79,27 +95,33 @@ const MoleculeMoverAlongCurve = ({
 		const t = simTime.current + offset;
 		const localT = ((t % cycle) + cycle) % cycle;
 
-		// index into sizes by cycle count (same behavior as your MoleculeMover)
-		const n = sizes?.length ?? 0;
-		if (n === 0) return;
+		// global step counter (how many cycles have passed)
+		const globalStep = Math.floor(t / cycle);
 
-		const step = Math.floor(t / cycle);
-		const idx = ((step % n) + n) % n;
+		// ✅ choose active track:
+		// - first play drug track ONCE (0..sizesDrug.length-1)
+		// - then loop base track forever
+		let activeSizes = sizesBase;
+		let idx = 0;
 
-		// ============================================================
-		// ======================= SIZE SNAP ==========================
-		// Size is defined ONLY by sizes[idx]
-		// ============================================================
-		meshRef.current.scale.setScalar(sizes[idx]);
-		// ============================================================
+		if (hasDrug && globalStep < sizesDrug.length) {
+			activeSizes = sizesDrug;
+			idx = globalStep; // play once, no wrap
+		} else {
+			const baseN = sizesBase.length;
+			if (baseN === 0) return;
+
+			const baseStep = globalStep - (hasDrug ? sizesDrug.length : 0);
+			idx = ((baseStep % baseN) + baseN) % baseN; // wrap base forever
+		}
+
+		meshRef.current.scale.setScalar(activeSizes[idx]);
 
 		// movement along full polyline during moveDuration
 		if (localT < moveDuration && totalLen > 0) {
 			const u = moveDuration > 0 ? localT / moveDuration : 1; // 0..1
 			const dist = u * totalLen;
 
-			// find segment containing this distance
-			// cumLens: [0, L0, L0+L1, ...]
 			let segIdx = 0;
 			while (segIdx < cumLens.length - 1 && dist > cumLens[segIdx + 1]) {
 				segIdx++;
@@ -115,7 +137,6 @@ const MoleculeMoverAlongCurve = ({
 			tmp.current.lerpVectors(points[segIdx], points[segIdx + 1], segU);
 			groupRef.current.position.copy(tmp.current);
 		} else {
-			// pause at end
 			groupRef.current.position.copy(points[points.length - 1]);
 		}
 	});
@@ -123,9 +144,12 @@ const MoleculeMoverAlongCurve = ({
 	// initial position
 	const initialPos = pos?.[0] ?? [0, 0, 0];
 
+	// ✅ initial scale: if we have drug, start from drug[0], else base[0]
+	const initialScale = hasDrug ? (sizesDrug?.[0] ?? 1) : (sizesBase?.[0] ?? 1);
+
 	return (
 		<group ref={groupRef} name={`${name}-molecule`} position={initialPos}>
-			<mesh ref={meshRef} scale={sizes?.[0] ?? 1}>
+			<mesh ref={meshRef} scale={initialScale}>
 				<sphereGeometry args={[1, 32, 32]} />
 				<meshStandardMaterial color="hotpink" />
 			</mesh>

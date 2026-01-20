@@ -268,6 +268,19 @@ const Viewer = ({
 					minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
 					maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
 				/>
+				{...CHECKPOINT_POSITIONS.map((pos, index) =>
+					index > 1 && index !== 5 ? (
+						<EnzymeMover
+							key={`enzyme-${index}`}
+							p0={[pos[0], pos[1] + 0.03, pos[2]]}
+							p1={[pos[0], pos[1], pos[2]]}
+							p2={[pos[0], pos[1] + 0.03, pos[2]]}
+							useSimTime={useSimTime}
+						/>
+					) : (
+						<></>
+					),
+				)}
 			</SimClock>
 		</Canvas>
 	);

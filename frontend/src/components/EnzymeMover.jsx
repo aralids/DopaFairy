@@ -1,5 +1,6 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
+import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import {
 	MOVE_DURATION_IN_SIM_SEC,
@@ -47,10 +48,11 @@ function EnzymeMover({ p0, p1, p2, useSimTime }) {
 	});
 
 	return (
-		<mesh ref={ref} name="TH" position={p0}>
-			<boxGeometry args={[0.03, 0.03, 0.03]} />
-			<meshStandardMaterial color="#7CFFCB" />
-		</mesh>
+		<group ref={ref} name="TH" position={p0}>
+			<Text fontSize={0.2} anchorX="center" anchorY="middle" color={"white"}>
+				🧚‍♀️
+			</Text>
+		</group>
 	);
 }
 
