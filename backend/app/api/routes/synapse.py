@@ -24,4 +24,9 @@ def compute_drug_influence(data: DrugRequest):
         t_admin=data.t_admin,
     )
 
+    print("result ldopa: ", result["y"][0][-1])
+    print("result cda: ", result["y"][1][-1])
+    print("result vda: ", result["y"][2][-1])
+    print("result eda: ", result["y"][3][-1])
+
     return result

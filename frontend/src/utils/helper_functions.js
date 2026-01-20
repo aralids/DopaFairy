@@ -101,13 +101,13 @@ export function downsampleByNearestMultiple(data, period, tMax = null) {
 		if (key in data) out[key] = sumIntervals(data[key]);
 	}
 
-	console.log("LDOPA_TO_CDA_CO = ", JSON.stringify(out.ldopaToCda));
-	console.log("LOST_CDA_CO =", JSON.stringify(out.lostCda));
-	console.log("REUPTAKEN_CO = ", JSON.stringify(out.reuptaken));
-	console.log("CDA_TO_VDA_CO =", JSON.stringify(out.cdaToVda));
-	console.log("DESTROYED_CO =", JSON.stringify(out.destroyed));
-	console.log("LOST_EDA =", JSON.stringify(out.lostEda));
-	console.log("out: ", out);
+	// console.log("LDOPA_TO_CDA_CO = ", JSON.stringify(out.ldopaToCda));
+	// console.log("LOST_CDA_CO =", JSON.stringify(out.lostCda));
+	// console.log("REUPTAKEN_CO = ", JSON.stringify(out.reuptaken));
+	// console.log("CDA_TO_VDA_CO =", JSON.stringify(out.cdaToVda));
+	// console.log("DESTROYED_CO =", JSON.stringify(out.destroyed));
+	// console.log("LOST_EDA =", JSON.stringify(out.lostEda));
+	// console.log("out: ", out);
 
 	return out;
 }

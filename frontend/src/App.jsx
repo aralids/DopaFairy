@@ -23,9 +23,9 @@ function App() {
 	const [circ2, setCirc2] = useState(false);
 	const [circ3, setCirc3] = useState(false);
 
-	const [dose, setDose] = useState(0);
+	const [dose, setDose] = useState(0.5);
 	const [halfTime, setHalfTime] = useState(15);
-	const [adminTime, setAdminTime] = useState(0);
+	const [adminTime, setAdminTime] = useState(6);
 
 	const yaoLink = useMemo(() => {
 		// TODO: replace with the actual paper URL/DOI once you have it

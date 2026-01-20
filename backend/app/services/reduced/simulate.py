@@ -12,23 +12,92 @@ from app.services.reduced.parameters import k_cda, k_eda
 t_0 = 0
 t_n = 24
 
-def solve_reduced_model(u0, *, dose, half_life, t_admin):
-    rhs = partial(
-        ODE_RHS,
-        dose=dose,
-        half_life=half_life,
-        t_admin=t_admin,
-    )
+def solve_reduced_model(u0, *, dose, half_life, t_admin, repeated_daily_dosing=1):
+    if repeated_daily_dosing == 1:
+        rhs = partial(
+            ODE_RHS,
+            dose=dose,
+            half_life=half_life,
+            t_admin=t_admin,
+        )
+        sol = solve_ivp(
+            rhs,
+            (t_0, t_n * 7),
+            u0,
+            method="Radau",
+            rtol=1e-9,
+            atol=1e-12,
+        )
 
-    sol = solve_ivp(
-        rhs,
-        (t_0, t_n),
-        u0,
-        method="Radau",
-        rtol=1e-9,
-        atol=1e-12,
-    )
+    else:
+        # --- piecewise repeated daily dosing ---
+        u = np.asarray(u0, dtype=float)
 
+        t_chunks = []
+        y_chunks = []
+
+        # (A) Pre-dose segment: 0 -> t_admin, with dose=0 so no drug effect yet
+        if t_admin > t_0:
+            rhs0 = partial(
+                ODE_RHS,
+                dose=0.0,
+                half_life=half_life,
+                t_admin=t_admin,  # doesn't matter when dose=0, but keep signature consistent
+            )
+            sol0 = solve_ivp(
+                rhs0,
+                (t_0, t_admin),
+                u,
+                method="Radau",
+                rtol=1e-9,
+                atol=1e-12,
+            )
+            t_chunks.append(sol0.t)
+            y_chunks.append(sol0.y)
+            u = sol0.y[:, -1]
+
+        # (B) Dose once per day at t_admin + k*24, each segment lasts 24h
+        for k in range(repeated_daily_dosing):
+            t_k_admin = t_admin + k * t_n
+            t_start = t_k_admin
+            t_end = t_k_admin + t_n
+
+            rhsk = partial(
+                ODE_RHS,
+                dose=dose,
+                half_life=half_life,
+                t_admin=t_k_admin,   # shift the single-dose model forward each day
+            )
+
+            solk = solve_ivp(
+                rhsk,
+                (t_start, t_end),
+                u,
+                method="Radau",
+                rtol=1e-9,
+                atol=1e-12,
+            )
+
+            # avoid duplicating boundary points when stitching
+            if len(t_chunks) == 0:
+                t_chunks.append(solk.t)
+                y_chunks.append(solk.y)
+            else:
+                t_chunks.append(solk.t[1:])
+                y_chunks.append(solk.y[:, 1:])
+
+            u = solk.y[:, -1]
+
+        # create a sol-like object for the rest of your code
+        class _Sol:
+            pass
+        sol = _Sol()
+        sol.t = np.concatenate(t_chunks) if len(t_chunks) else np.array([t_0], dtype=float)
+        sol.y = np.concatenate(y_chunks, axis=1) if len(y_chunks) else np.asarray(u0, dtype=float)[:, None]
+
+    # ===========================
+    # everything below is unchanged
+    # ===========================
     t = sol.t                      # (N,)
     y = sol.y                      # (4, N)
     ldopa = y[0, :]
@@ -36,14 +105,21 @@ def solve_reduced_model(u0, *, dose, half_life, t_admin):
     vda   = y[2, :]
     eda   = y[3, :]
 
-    # drug effect x(t) on the solver grid
+     # --- drug effect x(t) on the solver grid (N,) ---
+    # For now: single (unrepeated) dose only.
+    # (We keep the repeated_daily_dosing machinery, but we do NOT sum doses here yet.)
     x_vals = np.array(
         [x_dose(ti, dose=dose, half_life=half_life, t_admin=t_admin) for ti in t],
         dtype=float,
     )
     x_vals = np.clip(x_vals, 0.0, 1.0)
 
-    # --- RATES on grid (N,) ---
+    print("t_min, t_max, t_admin =", float(t[0]), float(t[-1]), float(t_admin))
+    print("x_max =", float(np.max(x_vals)))
+    print("x_at_admin_approx =", float(x_dose(t_admin, dose=dose, half_life=half_life, t_admin=t_admin)))
+
+
+
     tyrToLdopa_rate = np.array([V_TH(cda[i], eda[i]) * C_TH(t[i]) for i in range(len(t))], dtype=float)
     ldopaToCda_rate = np.array([V_AADC(ldopa[i]) for i in range(len(t))], dtype=float)
 
@@ -54,7 +130,6 @@ def solve_reduced_model(u0, *, dose, half_life, t_admin):
     destroyed_rate  = np.array([V_CATAB(eda[i]) * C_MAO(t[i]) for i in range(len(t))], dtype=float)
     lostEda_rate    = (k_eda * eda).astype(float)
 
-    # --- AMOUNTS per interval (N-1,) using trapezoidal rule ---
     dt = np.diff(t)  # (N-1,)
 
     tyrToLdopa = 0.5 * (tyrToLdopa_rate[:-1] + tyrToLdopa_rate[1:]) * dt
@@ -70,7 +145,7 @@ def solve_reduced_model(u0, *, dose, half_life, t_admin):
     return {
         "t": t.tolist(),
         "y": y.tolist(),
-        # NOTE: amounts are per-interval, so length is N-1 (between t[i] and t[i+1])
+        "x": x_vals.tolist(),
         "tyrToLdopa": tyrToLdopa.tolist(),
         "ldopaToCda": ldopaToCda.tolist(),
         "lostCda": lostCda.tolist(),
@@ -79,6 +154,7 @@ def solve_reduced_model(u0, *, dose, half_life, t_admin):
         "destroyed": destroyed.tolist(),
         "lostEda": lostEda.tolist(),
     }
+
 
 
 
