@@ -6,6 +6,7 @@ import {
 	PAUSE_DURATION_IN_SIM_SEC,
 	EDA_PATH_POINTS,
 	DAT_CURVE_POINTS,
+	MOLECULE_COLORS,
 } from "../config/config";
 import {
 	TYR_CO,
@@ -46,6 +47,7 @@ const Molecules = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : 0}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : 126}
+				sphereColor={MOLECULE_COLORS[0]}
 			/>
 			<MoleculeMover
 				name={"tyr"}
@@ -54,6 +56,7 @@ const Molecules = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : 0}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : 126}
+				sphereColor={MOLECULE_COLORS[1]}
 			/>
 			<MoleculeMover
 				name={"ldopa"}
@@ -62,6 +65,7 @@ const Molecules = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(CDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(CDA_CO)}
+				sphereColor={MOLECULE_COLORS[2]}
 			/>
 			<MoleculeMover
 				name={"cda"}
@@ -70,6 +74,7 @@ const Molecules = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
+				sphereColor={MOLECULE_COLORS[3]}
 			/>
 			<MoleculeMover
 				name={"vda"}
@@ -78,6 +83,7 @@ const Molecules = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
+				sphereColor={MOLECULE_COLORS[4]}
 			/>
 			<MoleculeMover
 				name={"eda-mao"}
@@ -86,6 +92,7 @@ const Molecules = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
+				sphereColor={MOLECULE_COLORS[5]}
 			/>
 			<MoleculeMoverAlongCurve
 				name={"eda-dat"}
@@ -94,6 +101,7 @@ const Molecules = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
+				sphereColor={MOLECULE_COLORS[5]}
 			/>
 		</>
 	);

@@ -6,6 +6,7 @@ import {
 	PAUSE_DURATION_IN_SIM_SEC,
 	EDA_PATH_POINTS,
 	DAT_CURVE_POINTS,
+	DEPOT_COLORS,
 } from "../config/config";
 import {
 	TYR_CO,
@@ -45,6 +46,7 @@ const Depots = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={MIN_VALUE_SS}
 				maxGlobalValue={MAX_VALUE_SS}
+				sphereColor={DEPOT_COLORS[0]}
 			/>
 			<Depot
 				name={"ldopa"}
@@ -53,6 +55,7 @@ const Depots = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(LDOPA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(LDOPA_CO)}
+				sphereColor={DEPOT_COLORS[1]}
 			/>
 			<Depot
 				name={"cda"}
@@ -61,6 +64,7 @@ const Depots = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(CDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(CDA_CO)}
+				sphereColor={DEPOT_COLORS[2]}
 			/>
 			<Depot
 				name={"vda"}
@@ -69,6 +73,7 @@ const Depots = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(VDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(VDA_CO)}
+				sphereColor={DEPOT_COLORS[3]}
 			/>
 			<Depot
 				name={"eda"}
@@ -78,6 +83,7 @@ const Depots = ({ simMode, useSimTime }) => {
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(EDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(EDA_CO)}
 				textColor="#1b2026"
+				sphereColor={DEPOT_COLORS[4]}
 			/>
 		</>
 	);

@@ -22,6 +22,7 @@ const Depot = ({
 	minGlobalValue,
 	maxGlobalValue,
 	textColor = "white",
+	sphereColor = "hotpink",
 }) => {
 	const sizes = useMemo(
 		() =>
@@ -80,12 +81,12 @@ const Depot = ({
 			<mesh ref={meshRef} scale={initialScale}>
 				{/* ✅ was radius=1; now match SphereMover */}
 				<sphereGeometry args={[BASE_GEOM_RADIUS, 32, 32]} />
-				<meshStandardMaterial color="hotpink" />
+				<meshStandardMaterial color={sphereColor} />
 			</mesh>
 
 			<Text
 				ref={textRef}
-				position={[0, -0.04, 0]}
+				position={[0, -0.02, 0]}
 				fontSize={0.04}
 				anchorX="center"
 				anchorY="top"

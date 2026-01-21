@@ -23,6 +23,7 @@ const MoleculeMoverAlongCurve = ({
 	moveDuration = MOVE_DURATION_IN_SIM_SEC,
 	pauseDuration = PAUSE_DURATION_IN_SIM_SEC,
 	offset = 0,
+	sphereColor = "hotpink",
 }) => {
 	// base sizes
 	let sizesBase = useMemo(
@@ -151,18 +152,18 @@ const MoleculeMoverAlongCurve = ({
 		<group ref={groupRef} name={`${name}-molecule`} position={initialPos}>
 			<mesh ref={meshRef} scale={initialScale}>
 				<sphereGeometry args={[1, 32, 32]} />
-				<meshStandardMaterial color="hotpink" />
+				<meshStandardMaterial color={sphereColor} />
 			</mesh>
 
 			<Text
-				position={[0, -0.04, 0]}
+				position={[0, -0.02, 0]}
 				fontSize={0.02}
 				anchorX="center"
 				anchorY="top"
 				billboard
 				scale={[-1, 1, 1]}
 			>
-				{name}
+				{}
 			</Text>
 		</group>
 	);

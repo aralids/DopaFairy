@@ -3,7 +3,7 @@ import EnzymeMover from "./EnzymeMover";
 
 const Enzymes = ({ useSimTime }) => {
 	const yMovementRange = 0.03;
-	const zOffset = 0.05;
+	const zOffset = 0.07;
 	return (
 		<>
 			<EnzymeMover

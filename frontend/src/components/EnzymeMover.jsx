@@ -57,7 +57,7 @@ function EnzymeMover({
 	return (
 		<group ref={ref} name="TH" position={p0}>
 			<Text
-				position={[0, +0.1, 0]}
+				position={[0, +0.08, 0]}
 				fontSize={0.04}
 				anchorX="center"
 				anchorY="middle"
@@ -66,7 +66,7 @@ function EnzymeMover({
 			>
 				{name}
 			</Text>
-			<Text fontSize={0.15} anchorX="center" anchorY="middle" color={textColor}>
+			<Text fontSize={0.1} anchorX="center" anchorY="middle" color={textColor}>
 				🧚‍♀️
 			</Text>
 		</group>

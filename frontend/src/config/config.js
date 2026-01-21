@@ -7,15 +7,15 @@ export const CHECKPOINT_POSITIONS = [
 	[0.550804, 1.37743, -1.07188],
 	[0.330904, 1.37743, -0.555198],
 	[0.148127, 1.29878, -0.225056],
-	[0.019215, 1.06271, -0.028969],
-	[0.000059, 0.771847, 0.001682],
+	[0.019215, 1.06965, -0.028969],
+	[0.000059, 0.836497, 0.001682],
 	[0.000059, 0.529464, 0.001682],
 ];
 export const DAT_CURVE_POINTS = [
 	[0.000059, 0.529464, 0.001682],
 	[-0.040968, 0.549783, 0.135849],
 	[-0.068187, 0.639589, 0.240136],
-	[-0.101567, 0.897333, 0.258814],
+	[-0.041205, 0.897333, 0.196127],
 	[-0.041837, 1.03926, 0.10928],
 	[0.019215, 1.06271, -0.028969],
 ];
@@ -56,3 +56,15 @@ export const PAUSE_DURATION_IN_SIM_SEC = realSec2SimSec(
 export const ENZYME_OFFSET_IN_SIM_SEC = realSec2SimSec(
 	ENZYME_OFFSET_IN_REAL_SEC,
 );
+
+//"#C73A3A", // vibrant crimson red
+export const DEPOT_COLORS = [
+	// cool crimson / raspberry
+	"#C93C7E", // magenta-rose
+	"#B14CC9", // electric orchid
+	"#8B57E0", // vibrant violet
+	"#5E6AE8", // cool indigo
+	"#3F63D8", // deep blue-violet
+];
+
+export const MOLECULE_COLORS = ["#C63A5A", ...DEPOT_COLORS];

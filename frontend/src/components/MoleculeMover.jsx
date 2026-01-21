@@ -23,6 +23,7 @@ const MoleculeMover = ({
 	moveDuration = MOVE_DURATION_IN_SIM_SEC,
 	pauseDuration = PAUSE_DURATION_IN_SIM_SEC,
 	offset = 0,
+	sphereColor = "hotpink",
 }) => {
 	// ✅ baseline sizes (loop forever)
 	let sizesBase = useMemo(
@@ -119,18 +120,18 @@ const MoleculeMover = ({
 		<group ref={groupRef} name={`${name}-depot`} position={pos[0]}>
 			<mesh ref={meshRef} scale={sizesBase?.[0] ?? 1}>
 				<sphereGeometry args={[1, 32, 32]} />
-				<meshStandardMaterial color="hotpink" />
+				<meshStandardMaterial color={sphereColor} />
 			</mesh>
 
 			<Text
-				position={[0, -0.04, 0]}
+				position={[0, -0.02, 0]}
 				fontSize={0.02}
 				anchorX="center"
 				anchorY="top"
 				billboard
 				scale={[-1, 1, 1]}
 			>
-				{name}
+				{}
 			</Text>
 		</group>
 	);
