@@ -184,7 +184,7 @@ function App() {
 								}}
 								onClick={() => setSimMode("steady")}
 							>
-								steady state
+								equilibrium
 							</button>
 							<button
 								style={{

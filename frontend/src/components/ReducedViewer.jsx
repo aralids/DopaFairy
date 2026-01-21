@@ -6,6 +6,8 @@ import Enzymes from "./Enzymes";
 import Molecules from "./Molecules";
 import Depots from "./Depots";
 import SimClockDisplay from "./SimClockDisplay";
+import CircadianLights from "./CircadianLights";
+import CircadianBackground from "./CircadianBackground";
 import {
 	REAL_SECONDS_PER_SIM_DAY,
 	SIM_SECONDS_PER_DAY,
@@ -107,14 +109,24 @@ const Viewer = ({
 	return (
 		<Canvas camera={{ position: [-3, 3, 3], fov: 50 }}>
 			<SimClock key={simMode}>
+				{simMode === "circadian" && (
+					<CircadianBackground useSimTime={useSimTime} />
+				)}
 				<CameraController
 					position={cameraPos}
 					target={cameraTarget}
 					enabled={autoCamera}
 					resetId={cameraResetId}
 				/>
-				<ambientLight intensity={1.2} />
-				<directionalLight position={[5, 5, 5]} intensity={2} />
+				{simMode === "circadian" ? (
+					<CircadianLights useSimTime={useSimTime} />
+				) : (
+					<>
+						<ambientLight intensity={1.2} />
+						<directionalLight position={[5, 5, 5]} intensity={2} />
+					</>
+				)}
+
 				<Environment preset="sunset" />
 				<OrbitControls
 					ref={controlsRef}
