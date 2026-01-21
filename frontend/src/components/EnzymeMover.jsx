@@ -49,7 +49,7 @@ function EnzymeMover({ p0, p1, p2, useSimTime }) {
 
 	return (
 		<group ref={ref} name="TH" position={p0}>
-			<Text fontSize={0.2} anchorX="center" anchorY="middle" color={"white"}>
+			<Text fontSize={0.15} anchorX="center" anchorY="middle" color={"white"}>
 				🧚‍♀️
 			</Text>
 		</group>

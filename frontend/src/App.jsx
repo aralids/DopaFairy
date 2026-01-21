@@ -293,49 +293,6 @@ function App() {
 							</button>
 						</div>
 					</div>
-
-					{simMode === "circadian" && (
-						<div style={styles.card}>
-							<div style={styles.cardTitle}>Circadian inputs (dummy)</div>
-
-							<label style={styles.checkboxRow}>
-								<input
-									type="checkbox"
-									checked={circ1}
-									onChange={(e) => setCirc1(e.target.checked)}
-								/>
-								<span>Toggle A</span>
-							</label>
-
-							<label style={styles.checkboxRow}>
-								<input
-									type="checkbox"
-									checked={circ2}
-									onChange={(e) => setCirc2(e.target.checked)}
-								/>
-								<span>Toggle B</span>
-							</label>
-
-							<label style={styles.checkboxRow}>
-								<input
-									type="checkbox"
-									checked={circ3}
-									onChange={(e) => setCirc3(e.target.checked)}
-								/>
-								<span>Toggle C</span>
-							</label>
-							<button
-								style={{
-									...styles.primaryButton,
-									width: "100%",
-									marginTop: 12,
-								}}
-								onClick={handleComputeDrugInfluence}
-							>
-								Compute drug influence
-							</button>
-						</div>
-					)}
 				</aside>
 			</main>
 

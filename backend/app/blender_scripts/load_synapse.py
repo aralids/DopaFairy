@@ -23,7 +23,7 @@ bpy.ops.object.delete(use_global=False)
 
 # --- Path to the .blend asset and internal object ---
 blend_path = Path(r"C:\Users\PC\Desktop\DopaFairy\blender\synapse.blend")
-object_names = ["Presynapse", "Postsynapse", "Transporter"]
+object_names = ["Presynapse", "Postsynapse", "Transporter", "Transporter2", "DAT"]
 
 # --- Append object correctly ---
 directory = str(blend_path) + r"\Object\\"
