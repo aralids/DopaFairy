@@ -86,7 +86,7 @@ const Depot = ({
 
 			<Text
 				ref={textRef}
-				position={[0, -0.02, 0]}
+				position={[0, -0.04, 0]}
 				fontSize={0.04}
 				anchorX="center"
 				anchorY="top"
@@ -98,6 +98,7 @@ const Depot = ({
 				outlineWidth={0.002}
 				outlineColor="#ffffff"
 				outlineOpacity={0.12}
+				lineHeight={0.9}
 			>
 				{`${name}`}
 			</Text>
