@@ -24,6 +24,7 @@ const Enzymes = ({ useSimTime }) => {
 					CHECKPOINT_POSITIONS[2][2] + zOffset,
 				]}
 				useSimTime={useSimTime}
+				name="TH"
 			/>
 			<EnzymeMover
 				key={`enzyme-aadc`}
@@ -43,6 +44,7 @@ const Enzymes = ({ useSimTime }) => {
 					CHECKPOINT_POSITIONS[3][2] + zOffset,
 				]}
 				useSimTime={useSimTime}
+				name="AADC"
 			/>
 			<EnzymeMover
 				key={`enzyme-mat`}
@@ -62,6 +64,7 @@ const Enzymes = ({ useSimTime }) => {
 					CHECKPOINT_POSITIONS[4][2] + zOffset,
 				]}
 				useSimTime={useSimTime}
+				name="MAT"
 			/>
 			<EnzymeMover
 				key={`enzyme-mao`}
@@ -81,6 +84,8 @@ const Enzymes = ({ useSimTime }) => {
 					EDA_PATH_POINTS[1][2] + zOffset,
 				]}
 				useSimTime={useSimTime}
+				textColor={"#1b2026"}
+				name="MAO"
 			/>
 		</>
 	);

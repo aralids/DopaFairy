@@ -77,6 +77,7 @@ const Depots = ({ simMode, useSimTime }) => {
 				useSimTime={useSimTime}
 				minGlobalValue={simMode === "steady" ? MIN_VALUE_SS : minOf(EDA_CO)}
 				maxGlobalValue={simMode === "steady" ? MAX_VALUE_SS : maxOf(EDA_CO)}
+				textColor="#1b2026"
 			/>
 		</>
 	);

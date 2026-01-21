@@ -21,6 +21,7 @@ const Depot = ({
 	useSimTime,
 	minGlobalValue,
 	maxGlobalValue,
+	textColor = "white",
 }) => {
 	const sizes = useMemo(
 		() =>
@@ -85,11 +86,17 @@ const Depot = ({
 			<Text
 				ref={textRef}
 				position={[0, -0.04, 0]}
-				fontSize={0.02}
+				fontSize={0.04}
 				anchorX="center"
 				anchorY="top"
+				textAlign="center"
 				billboard
 				scale={[-1, 1, 1]}
+				color={textColor}
+				fillOpacity={0.85}
+				outlineWidth={0.002}
+				outlineColor="#ffffff"
+				outlineOpacity={0.12}
 			>
 				{`${name}`}
 			</Text>

@@ -8,7 +8,14 @@ import {
 	ENZYME_OFFSET_IN_SIM_SEC,
 } from "../config/config";
 
-function EnzymeMover({ p0, p1, p2, useSimTime }) {
+function EnzymeMover({
+	p0,
+	p1,
+	p2,
+	useSimTime,
+	textColor = "white",
+	name = "",
+}) {
 	const offset = ENZYME_OFFSET_IN_SIM_SEC;
 	const move1 = MOVE_DURATION_IN_SIM_SEC / 2;
 	const pause = PAUSE_DURATION_IN_SIM_SEC;
@@ -49,7 +56,17 @@ function EnzymeMover({ p0, p1, p2, useSimTime }) {
 
 	return (
 		<group ref={ref} name="TH" position={p0}>
-			<Text fontSize={0.15} anchorX="center" anchorY="middle" color={"white"}>
+			<Text
+				position={[0, +0.1, 0]}
+				fontSize={0.04}
+				anchorX="center"
+				anchorY="middle"
+				color={textColor}
+				scale={[-1, 1, 1]}
+			>
+				{name}
+			</Text>
+			<Text fontSize={0.15} anchorX="center" anchorY="middle" color={textColor}>
 				🧚‍♀️
 			</Text>
 		</group>
