@@ -34,10 +34,8 @@ function App() {
 	const [error, setError] = useState(null);
 
 	// camera controls you already had
-	const [cameraPos, setCameraPos] = useState([
-		0.3854472334591896, 0.7939533264424148, 0.3433836230386268,
-	]);
-	const [cameraTarget, setCameraTarget] = useState([0, 0, 0]);
+	const [cameraPos, setCameraPos] = useState([1 / 2, 3 / 2, -10 / 2]);
+	const [cameraTarget, setCameraTarget] = useState([0, 0, 6]);
 	const [autoCamera, setAutoCamera] = useState(true);
 	const [cameraResetId, setCameraResetId] = useState(0);
 
@@ -50,6 +48,8 @@ function App() {
 	const [dose, setDose] = useState(0.5);
 	const [halfTime, setHalfTime] = useState(15);
 	const [adminTime, setAdminTime] = useState(6);
+
+	const [presynapseOpacity, setPresynapseOpacity] = useState(1.0);
 
 	const yaoLink = useMemo(() => {
 		// TODO: replace with the actual paper URL/DOI once you have it
@@ -164,6 +164,7 @@ function App() {
 								setAutoCamera={setAutoCamera}
 								cameraResetId={cameraResetId}
 								simMode={simMode}
+								presynapseOpacity={presynapseOpacity}
 							/>
 						)}
 					</div>
@@ -204,34 +205,91 @@ function App() {
 							<button
 								style={styles.button}
 								onClick={() => {
-									setCameraPos([0, 6, 10]);
+									setCameraPos([1 / 4.5, 3 / 4.5, -10 / 4.5]);
+									setCameraTarget([0, 1.8, 6]);
 									setAutoCamera(true);
 									setCameraResetId((id) => id + 1);
+									setPresynapseOpacity(0.3);
 								}}
 							>
-								Top view
-							</button>
-
-							<button
-								style={styles.button}
-								onClick={() => {
-									setCameraPos([0, -5, 0]);
-									setAutoCamera(true);
-								}}
-							>
-								Bottom view
+								Presynapse close-up
 							</button>
 
 							<button
 								style={styles.button}
 								onClick={() => {
 									setCameraPos([
-										0.23450162311660422, 1.4987635921635074, -3.128746165755008,
+										-0.7332239632468313, 1.4704271686085164, -1.061366089818541,
+									]);
+									setCameraTarget([
+										0.29626928863452184, 1.291641235476282, -0.6138156180284925,
 									]);
 									setAutoCamera(true);
 								}}
 							>
-								Transporter view
+								btyr ⟶ tyr ⟶ ldopa
+							</button>
+
+							<button
+								style={styles.button}
+								onClick={() => {
+									setCameraPos([
+										-0.4986511464683294, 1.194467475181709, -0.7953984224005186,
+									]);
+									setCameraTarget([
+										0.0914125962481884, 1.075857368778997, -0.34102648519232986,
+									]);
+									setAutoCamera(true);
+								}}
+							>
+								ldopa ⟶ cda ⟶ vda
+							</button>
+							<button
+								style={styles.button}
+								onClick={() => {
+									setCameraPos([
+										-0.027219492583773375, 0.6082807036124639,
+										-0.9203135398428287,
+									]);
+									setCameraTarget([
+										0.0991547926165732, 0.705320140864317, -0.35852894621914255,
+									]);
+									setAutoCamera(true);
+								}}
+							>
+								cda ⟶ vda ⟶ eda
+							</button>
+							<button
+								style={styles.button}
+								onClick={() => {
+									setCameraPos([
+										-0.1802707385861112, 1.0506224018010533,
+										-0.8233497987965147,
+									]);
+									setCameraTarget([
+										0.3541169423310957, 0.2711718003668836,
+										-0.03679631348033715,
+									]);
+									setAutoCamera(true);
+								}}
+							>
+								eda ⟶ destruction
+							</button>
+							<button
+								style={styles.button}
+								onClick={() => {
+									setCameraPos([
+										-0.8449864060292488, 1.2207966852018328,
+										-0.3348098210387368,
+									]);
+									setCameraTarget([
+										0.41550505174953145, 0.7672195418423863,
+										0.18978691426070596,
+									]);
+									setAutoCamera(true);
+								}}
+							>
+								eda ⟶ reuptake
 							</button>
 						</div>
 					</div>

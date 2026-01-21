@@ -75,7 +75,7 @@ function SimClock({ children }) {
 	);
 }
 
-function Model({ url }) {
+function Model({ url, presynapseOpacity }) {
 	const { scene, nodes } = useGLTF(url);
 	useEffect(() => {
 		const presynapse = nodes.Presynapse;
@@ -86,7 +86,7 @@ function Model({ url }) {
 
 		// 2️⃣ Make ONLY this material transparent
 		transparentMat.transparent = true;
-		transparentMat.opacity = 0.3;
+		transparentMat.opacity = presynapseOpacity;
 
 		// 3️⃣ Important transparency fix
 		transparentMat.depthWrite = false;
@@ -134,6 +134,7 @@ const Viewer = ({
 	setAutoCamera,
 	cameraResetId,
 	simMode,
+	presynapseOpacity,
 }) => {
 	const controlsRef = useRef();
 
@@ -159,14 +160,20 @@ const Viewer = ({
 						const controls = controlsRef.current;
 						if (!controls) return;
 
-						const cam = controls.object;
-						const t = controls.target;
+						setTimeout(() => {
+							const cam = controls.object;
+							const t = controls.target;
 
-						// console.log("cameraPos:", [cam.position.x, cam.position.y, cam.position.z]);
-						// console.log("cameraTarget:", [t.x, t.y, t.z]);
+							console.log("cameraPos:", cam.position.toArray());
+							console.log("cameraTarget:", t.toArray());
+						}, 200); // 150–300ms is perfect
 					}}
 				/>
-				<Model url={modelUrl} />
+				<Model
+					url={modelUrl}
+					presynapseOpacity={presynapseOpacity}
+					key={presynapseOpacity}
+				/>
 				{simMode === "circadian" ? (
 					<SimClockDisplay useSimTime={useSimTime} />
 				) : (
@@ -281,6 +288,25 @@ const Viewer = ({
 						<></>
 					),
 				)}
+				<EnzymeMover
+					key={`enzyme-mao`}
+					p0={[
+						EDA_PATH_POINTS[1][0],
+						EDA_PATH_POINTS[1][1] + 0.03,
+						EDA_PATH_POINTS[1][2],
+					]}
+					p1={[
+						EDA_PATH_POINTS[1][0],
+						EDA_PATH_POINTS[1][1],
+						EDA_PATH_POINTS[1][2],
+					]}
+					p2={[
+						EDA_PATH_POINTS[1][0],
+						EDA_PATH_POINTS[1][1] + 0.03,
+						EDA_PATH_POINTS[1][2],
+					]}
+					useSimTime={useSimTime}
+				/>
 			</SimClock>
 		</Canvas>
 	);
